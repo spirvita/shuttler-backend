@@ -1,0 +1,42 @@
+{
+  "name": "shuttler-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "docker compose --env-file .env up -d --build",
+    "stop": "docker compose --env-file .env stop",
+    "clean": "docker compose --env-file .env down -v",
+    "dev": "nodemon ./bin/www",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint '.'",
+    "lint:fix": "eslint '.' --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.14.1",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0",
+    "typeorm": "^0.3.21"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-promise": "^6.6.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3"
+  }
+}

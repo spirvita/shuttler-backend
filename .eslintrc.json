@@ -1,0 +1,28 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "extends": [
+    "standard",
+    "plugin:import/recommended",
+    "plugin:n/recommended",
+    "plugin:promise/recommended",
+    "prettier",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["import", "n", "promise", "prettier"],
+  "rules": {
+    "no-console": "warn",
+    "n/shebang": "off",
+    "n/no-process-exit": "off"
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js"]
+      }
+    }
+  },
+  "ignorePatterns": ["node_modules/"]
+}
