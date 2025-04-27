@@ -1,21 +1,66 @@
 version: '3.8'
-volumes:
-  pgData:
+
 services:
   postgres:
-    image: postgres:16.4-alpine3.20
+    image: postgres:${DB_VERSION}
+    container_name: ${PROJECT_NAME}-postgres
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_DATABASE}
-    volumes:
-      - pgData:/var/lib/postgresql/data
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
-      - 5432:5432
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}", "-d", "${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      dockerfile: Dockerfile
+      args:
+        buildtime_NVM_VERSION: ${NVM_VERSION}
+        buildtime_NODE_VERSION: ${NODE_VERSION}
+        buildtime_PNPM_HOME: ${PNPM_HOME}
+        buildtime_PNPM_VERSION: ${PNPM_VERSION}
+        buildtime_YARN_VERSION: ${YARN_VERSION}
+        buildtime_GOLANG_VERSION: ${GOLANG_VERSION}
+        buildtime_GUM_VERSION: ${GUM_VERSION}
+        buildtime_CONTAINER_PORT: ${CONTAINER_PORT}
+    image: ${DOCKERHUB_ACCOUNT}/${PROJECT_NAME}-backend-${PLATFORM}
+    container_name: ${PROJECT_NAME}-backend-${PLATFORM}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${LOCAL_PORT}:${CONTAINER_PORT}"
+    volumes:
+      - .:/work
+      - /work/node_modules  # 避免 bind host 上的空 node_modules
+    networks:
+      - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: 3
+        compress: "true"
     deploy:
       replicas: 1
-    healthcheck:
-      test: ['CMD-SHELL', "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}'"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+
+volumes:
+  pg_data:
+
+networks:
+  backend:
+    name: ${PROJECT_NAME}-backend-network
+    driver: bridge
