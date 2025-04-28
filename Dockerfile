@@ -85,6 +85,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/instal
     && ln -sf ${NVM_DIR}/versions/node/$(nvm version)/bin/node /usr/local/bin/node \
     && ln -sf ${NVM_DIR}/versions/node/$(nvm version)/bin/npm /usr/local/bin/npm \
     && ln -sf ${NVM_DIR}/versions/node/$(nvm version)/bin/npx /usr/local/bin/npx \
+    && ln -sf ${NVM_DIR}/versions/node/$(nvm version)/bin/nodemon /usr/local/bin/nodemon \
     && npm install -g nodemon
 
 ##############################
@@ -201,4 +202,4 @@ RUN pnpm install
 ARG buildtime_CONTAINER_PORT=3000
 EXPOSE ${buildtime_CONTAINER_PORT}
 
-CMD ["node", "./bin/www.js"]
+CMD ["pnpm", "run", "dev"]

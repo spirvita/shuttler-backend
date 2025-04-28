@@ -37,7 +37,8 @@ services:
     image: ${DOCKERHUB_ACCOUNT}/${PROJECT_NAME}-backend-${PLATFORM}
     container_name: ${PROJECT_NAME}-backend-${PLATFORM}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     env_file:
       - .env
