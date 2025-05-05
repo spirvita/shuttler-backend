@@ -30,11 +30,21 @@ module.exports = new EntitySchema({
     photo: {
       type: 'varchar',
       length: 255,
-      nullable: false,
+      nullable: true,
     },
-    skill_level_id: {
-      type: 'uuid',
-      generated: 'uuid',
+    skill_level: {
+      type: 'int',
+      array: true,
+      nullable: true,
+    },
+    region: {
+      type: 'int',
+      array: true,
+      nullable: true,
+    },
+    total_point: {
+      type: 'int',
+      default: 0,
       nullable: false,
     },
     created_at: {

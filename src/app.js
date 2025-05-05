@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const pinoHttp = require('pino-http');
-
+const passport = require('./config/passport');
 const logger = require('./utils/logger')('app');
 
 const v1Routes = require('./routes/v1');
@@ -13,6 +13,7 @@ const app = express();
 app.use(cors()); // 啟用 CORS
 app.use(express.json()); // parser JSON request
 app.use(express.urlencoded({ extended: false })); // parser URL encoded request
+app.use(passport.initialize()); // 啟用 passport
 app.use(
   pinoHttp({
     logger, // 使用自訂義的 pino logger
