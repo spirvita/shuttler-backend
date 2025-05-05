@@ -8,6 +8,7 @@
     "stop": "docker compose --env-file .env stop",
     "clean": "docker compose --env-file .env down -v",
     "dev": "nodemon ./bin/www",
+    "seed": "node ./src/seeds/index.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint '.'",

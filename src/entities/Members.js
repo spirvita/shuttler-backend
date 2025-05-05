@@ -1,8 +1,9 @@
 const { EntitySchema } = require('typeorm');
+const Levels = require('./Levels');
 
 module.exports = new EntitySchema({
-  name: 'Member',
-  tableName: 'MEMBER',
+  name: 'Members',
+  tableName: 'MEMBERS',
   columns: {
     id: {
       primary: true,
@@ -28,23 +29,11 @@ module.exports = new EntitySchema({
       select: false,
     },
     photo: {
-      type: 'varchar',
-      length: 255,
-      nullable: true,
+      type: 'text',
+      nullable: false,
     },
-    skill_level: {
-      type: 'int',
-      array: true,
-      nullable: true,
-    },
-    region: {
-      type: 'int',
-      array: true,
-      nullable: true,
-    },
-    total_point: {
-      type: 'int',
-      default: 0,
+    level_id: {
+      type: 'uuid',
       nullable: false,
     },
     created_at: {
@@ -56,6 +45,26 @@ module.exports = new EntitySchema({
       type: 'timestamp',
       nullable: false,
       updateDate: true,
+    },
+  },
+  relations: {
+    activities: {
+      target: 'Activities',
+      type: 'one-to-many',
+      inverseSide: 'Members',
+      joinColumn: {
+        name: 'id',
+        referencedColumnName: 'member_id',
+      },
+    },
+    levels: {
+      target: Levels,
+      type: 'many-to-one',
+      inverseSide: 'Members',
+      joinColumn: {
+        name: 'level_id',
+        referencedColumnName: 'id',
+      },
     },
   },
 });
