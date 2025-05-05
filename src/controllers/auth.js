@@ -22,7 +22,7 @@ const authController = {
         return next(appError(400, '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字'));
       }
 
-      const existingMember = await dataSource.getRepository('Member').findOne({
+      const existingMember = await dataSource.getRepository('Members').findOne({
         where: {
           email,
         },
@@ -34,13 +34,13 @@ const authController = {
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
-      const newMember = await dataSource.getRepository('Member').create({
+      const newMember = await dataSource.getRepository('Members').create({
         name,
         email,
         password: hashedPassword,
       });
 
-      const savedMember = await dataSource.getRepository('Member').save(newMember);
+      const savedMember = await dataSource.getRepository('Members').save(newMember);
       logger.info('註冊使用者成功:', savedMember.id);
 
       const token = await generateJWT({ id: savedMember.id });

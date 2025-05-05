@@ -14,7 +14,7 @@ const jwtOptions = {
 passport.use(
   new JWTStrategy(jwtOptions, async (jwtPayload, done) => {
     try {
-      const member = await dataSource.getRepository('Member').findOne({
+      const member = await dataSource.getRepository('Members').findOne({
         where: { id: jwtPayload.id },
       });
 
@@ -40,7 +40,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
-        const member = await dataSource.getRepository('Member').findOne({
+        const member = await dataSource.getRepository('Members').findOne({
           where: { email },
           select: ['id', 'name', 'email', 'password'],
         });

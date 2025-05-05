@@ -30,11 +30,11 @@ module.exports = new EntitySchema({
     },
     photo: {
       type: 'text',
-      nullable: false,
+      nullable: true,
     },
     level_id: {
       type: 'uuid',
-      nullable: false,
+      nullable: true,
     },
     created_at: {
       type: 'timestamp',

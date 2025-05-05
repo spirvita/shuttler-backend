@@ -52,7 +52,7 @@ const activitiesController = {
       }
 
       res.status(200).json({
-        message: "成功",
+        message: '成功',
         data: data,
       });
     } catch (error) {
@@ -85,7 +85,7 @@ const activitiesController = {
       const cityRepo = dataSource.getRepository('Cities');
       const cityData = await cityRepo.findOne({
         where: {
-          zip_code: activities.zip_code
+          zip_code: activities.zip_code,
         },
       });
 
@@ -114,7 +114,7 @@ const activitiesController = {
       const level = levels.map((al) => al.level.name);
 
       res.status(200).json({
-        message: "成功",
+        message: '成功',
         data: {
           activityId: activities.id,
           name: activities.name,

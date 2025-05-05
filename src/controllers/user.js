@@ -7,7 +7,7 @@ const userController = {
   getMemberProfile: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const findUser = await dataSource.getRepository('Member').findOne({
+      const findUser = await dataSource.getRepository('Members').findOne({
         where: {
           id,
         },
@@ -41,7 +41,7 @@ const userController = {
         return next(appError(400, '欄位未填寫正確'));
       }
       // 檢查用戶是否存在
-      const existingMember = await dataSource.getRepository('Member').findOne({
+      const existingMember = await dataSource.getRepository('Members').findOne({
         where: {
           id,
         },
@@ -54,7 +54,7 @@ const userController = {
       }
       // 更新前檢查唯一欄位（如 email）是否與除了自己外的其他用戶衝突
       if (email && email !== existingMember.email) {
-        const existingEmail = await dataSource.getRepository('Member').findOne({
+        const existingEmail = await dataSource.getRepository('Members').findOne({
           where: {
             email,
           },
@@ -66,7 +66,7 @@ const userController = {
         }
       }
 
-      const updatedMember = await dataSource.getRepository('Member').update(
+      const updatedMember = await dataSource.getRepository('Members').update(
         { id },
         {
           name,
@@ -83,7 +83,7 @@ const userController = {
       logger.info('更新使用者資料成功:', updatedMember.id);
 
       // 重新查詢更新後的使用者資料
-      const updateData = await dataSource.getRepository('Member').findOne({
+      const updateData = await dataSource.getRepository('Members').findOne({
         where: {
           id,
         },
