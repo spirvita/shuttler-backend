@@ -94,6 +94,27 @@ const authController = {
       next(error);
     }
   },
+  googleAuthCallback: async (req, res, next) => {
+    try {
+      const { id, email, name } = req.user;
+      const token = await generateJWT({ id });
+
+      res.status(200).json({
+        data: {
+          member: {
+            token,
+            user: {
+              name,
+              email,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      logger.error('Google 登入錯誤:', error);
+      next(error);
+    }
+  },
 };
 
 module.exports = authController;

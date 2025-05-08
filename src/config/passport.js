@@ -2,6 +2,7 @@ const passport = require('passport');
 const bcrypt = require('bcrypt');
 const JWTStrategy = require('passport-jwt').Strategy;
 const ExtractJWT = require('passport-jwt').ExtractJwt;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
 const { dataSource } = require('../db/data-source');
 const config = require('./index');
@@ -63,6 +64,41 @@ passport.use(
         return done(null, member);
       } catch (error) {
         return done(error);
+      }
+    },
+  ),
+);
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: config.get('google.googleClientId'),
+      clientSecret: config.get('google.googleClientSecret'),
+      callbackURL: config.get('google.googleCallbackURL'),
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        const { email, name } = profile._json;
+
+        const member = await dataSource.getRepository('Members').findOne({
+          where: { email },
+        });
+        if (member) {
+          return done(null, member);
+        }
+        const salt = await bcrypt.genSalt(10);
+        const randomPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
+        const newMember = await dataSource.getRepository('Members').create({
+          name,
+          email,
+          password: hashedPassword,
+        });
+        const savedMember = await dataSource.getRepository('Members').save(newMember);
+        return done(null, savedMember);
+      } catch (error) {
+        return done(error, false);
       }
     },
   ),
