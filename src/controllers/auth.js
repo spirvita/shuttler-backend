@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Member');
-const { isValidString, isValidPassword } = require('../utils/validUtils');
+const { isValidString, isValidPassword, isValidEmail } = require('../utils/validUtils');
 const appError = require('../utils/appError');
 const { generateJWT } = require('../utils/jwtUtils');
 
@@ -14,12 +14,27 @@ const authController = {
         return next(appError(400, '欄位未填寫正確'));
       }
 
+      if (!isValidEmail(email)) {
+        logger.warn('註冊使用者錯誤:', 'Email 格式不正確');
+        return next(appError(400, 'Email 格式不正確'));
+      }
+
+      if (name.length > 64) {
+        logger.warn('註冊使用者錯誤:', '姓名長度超過64字');
+        return next(appError(400, '姓名長度超過64字'));
+      }
+
       if (!isValidPassword(password)) {
         logger.warn(
           '註冊使用者錯誤:',
-          '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字',
+          '密碼不符合規則，需要包含英文數字大小寫，無特殊字元，最短8個字，最長32個字',
         );
-        return next(appError(400, '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字'));
+        return next(
+          appError(
+            400,
+            '密碼不符合規則，需要包含英文數字大小寫，無特殊字元，最短8個字，最長32個字',
+          ),
+        );
       }
 
       const existingMember = await dataSource.getRepository('Members').findOne({

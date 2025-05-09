@@ -36,6 +36,12 @@ module.exports = new EntitySchema({
       type: 'uuid',
       nullable: true,
     },
+    region: {
+      type: 'varchar',
+      length: 50,
+      array: true,
+      nullable: true,
+    },
     created_at: {
       type: 'timestamp',
       nullable: false,
@@ -57,7 +63,7 @@ module.exports = new EntitySchema({
         referencedColumnName: 'member_id',
       },
     },
-    levels: {
+    level: {
       target: Levels,
       type: 'many-to-one',
       inverseSide: 'Members',

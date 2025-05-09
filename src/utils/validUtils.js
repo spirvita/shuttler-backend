@@ -7,8 +7,13 @@ const isNumber = (value) => {
 };
 
 const isValidPassword = (value) => {
-  const passwordPattern = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}/;
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,32}$/;
   return passwordPattern.test(value);
+};
+
+const isValidEmail = (value) => {
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return typeof value === 'string' && emailPattern.test(value);
 };
 
 const isValidImageUrl = (url) => {
@@ -26,4 +31,5 @@ module.exports = {
   isValidPassword,
   isValidImageUrl,
   isValidUUID,
+  isValidEmail,
 };

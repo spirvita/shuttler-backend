@@ -54,7 +54,7 @@ module.exports = new EntitySchema({
     booked_count: {
       type: 'integer',
       nullable: false,
-    }, 
+    },
     rental_lot: {
       type: 'integer',
       nullable: false,
@@ -106,6 +106,5 @@ module.exports = new EntitySchema({
         referencedColumnName: 'id',
       },
     },
-  }
-
+  },
 });

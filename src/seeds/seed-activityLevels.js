@@ -2,7 +2,7 @@ module.exports = async (dataSource) => {
   const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
   const activitiesRepo = dataSource.getRepository('Activities');
   const levelsRepo = dataSource.getRepository('Levels');
-  
+
   const levels = await levelsRepo.find();
   if (!levels || levels.length === 0) {
     throw new Error('✘ Level 資料尚未建立，請先執行 seed-levels.js');
@@ -83,4 +83,4 @@ module.exports = async (dataSource) => {
       await activityLevelsRepo.save(activityLevel);
     }
   }
-}
+};

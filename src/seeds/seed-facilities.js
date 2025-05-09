@@ -18,4 +18,4 @@ module.exports = async (dataSource) => {
       await facilitiesRepo.save(facility);
     }
   }
-}
+};

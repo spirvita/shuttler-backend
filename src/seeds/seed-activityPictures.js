@@ -99,6 +99,6 @@ module.exports = async (dataSource) => {
   ];
 
   for (const activityPicture of defaultActivityPictures) {
-      await activityPicturesRepo.save(activityPicture);
+    await activityPicturesRepo.save(activityPicture);
   }
-}
+};

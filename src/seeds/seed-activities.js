@@ -198,7 +198,6 @@ module.exports = async (dataSource) => {
     },
   ];
 
-
   for (const activity of defaultActivities) {
     await activitiesRepo.save(activity);
   }

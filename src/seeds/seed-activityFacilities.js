@@ -2,7 +2,7 @@ module.exports = async (dataSource) => {
   const activityFacilitiesRepo = dataSource.getRepository('ActivityFacilities');
   const activitiesRepo = dataSource.getRepository('Activities');
   const facilitiesRepo = dataSource.getRepository('Facilities');
-  
+
   const facilities = await facilitiesRepo.find();
   if (!facilities || facilities.length === 0) {
     throw new Error('✘ Facilities 資料尚未建立，請先執行 seed-facilities.js');
@@ -164,7 +164,7 @@ module.exports = async (dataSource) => {
     {
       activity_id: activities[9].id,
       facility_id: facilities[2].id,
-    }
+    },
   ];
   for (const activityFacility of defaultActivityFacilities) {
     const exists = await activityFacilitiesRepo.findOneBy({
@@ -175,4 +175,4 @@ module.exports = async (dataSource) => {
       await activityFacilitiesRepo.save(activityFacility);
     }
   }
-}
+};

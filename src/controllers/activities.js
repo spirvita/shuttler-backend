@@ -37,14 +37,14 @@ const activitiesController = {
 
         data.push({
           activityId: activity.id,
-          date: date,
+          date,
           name: activity.name,
           memberName: activity.member.name,
           memberPhoto: activity.member.photo,
           venueName: activity.venue_name,
-          startTime: startTime,
-          endTime: endTime,
-          level: level,
+          startTime,
+          endTime,
+          level,
           participantCount: activity.participant_count,
           bookedCount: activity.booked_count,
           points: activity.points,
@@ -53,7 +53,7 @@ const activitiesController = {
 
       res.status(200).json({
         message: '成功',
-        data: data,
+        data,
       });
     } catch (error) {
       logger.error('取得活動資料錯誤:', error);
@@ -120,17 +120,17 @@ const activitiesController = {
           name: activities.name,
           memberName: activities.member.name,
           memberPhoto: activities.member.photo,
-          eventPictures: eventPictures,
-          date: date,
-          startTime: startTime,
-          endTime: endTime,
+          eventPictures,
+          date,
+          startTime,
+          endTime,
           venueName: activities.venue_name,
           city: cityData.city,
           district: cityData.district,
           address: activities.address,
-          venueFacilities: venueFacilities,
+          venueFacilities,
           ballType: activities.ball_type,
-          level: level,
+          level,
           participantCount: activities.participant_count,
           bookedCount: activities.booked_count,
           rentalLot: activities.rental_lot,
