@@ -1,0 +1,21 @@
+name: Checkout Code
+
+on:
+  push:
+    branches:
+      - daniel
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: shuttler-tw/shuttler-backend
+          ref: daniel
+
+      - name: show files
+        run: |
+          echo "Files in the repository:"
+          ls -al
