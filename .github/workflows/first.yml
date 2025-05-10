@@ -9,13 +9,17 @@ jobs:
   checkout:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
           repository: shuttler-tw/shuttler-backend
           ref: daniel
 
-      - name: show files
-        run: |
-          echo "Files in the repository:"
-          ls -al
+      - name: Setup Node Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.0'
+      - run: |
+          echo "Node version: $(node -v)"
+          echo "Installing dependencies..."
+          pnpm install
