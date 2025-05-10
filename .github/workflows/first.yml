@@ -22,4 +22,6 @@ jobs:
       - run: |
           echo "Node version: $(node -v)"
           echo "Installing dependencies..."
+          npm install -g pnpm
           pnpm install
+          
