@@ -1,10 +1,10 @@
-name: Remote SSH Command
+name: Remote SSH Commanda
 on:
   workflow_dispatch: {}
 
 jobs:
   build:
-    name: Build
+    name: Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Execute remote SSH commands using password
@@ -15,5 +15,7 @@ jobs:
           host: ${{ secrets.EC2_HOST}}
           port: ${{ secrets.EC2_PORT }}
           script: |
-            whoami
+            cd ~/work/github/shuttler-backend-dev
+            git pull
+
 
