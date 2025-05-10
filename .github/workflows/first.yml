@@ -24,4 +24,11 @@ jobs:
           echo "Installing dependencies..."
           npm install -g pnpm
           pnpm install
-          
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Check Prettier Formatting
+        run: npm run format:check
+
+
