@@ -1,9 +1,9 @@
 name: Checkout Code
 
 on:
-  push:
-    branches:
-      - daniel
+  # push:
+  #   branches:
+  #     - daniel
   workflow_dispatch:
 
 jobs:
