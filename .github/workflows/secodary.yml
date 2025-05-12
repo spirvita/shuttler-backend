@@ -9,9 +9,6 @@ on:
 jobs:
   checkout:
     runs-on: ubuntu-latest
-    outputs:
-      eslint_output: ${{ steps.eslint.outputs.eslint_msg }}
-      prettier_output: ${{ steps.prettier.outputs.prettier_msg }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -37,20 +34,9 @@ jobs:
         id: eslint
         continue-on-error: true
         run: |
-          npm run lint | tee "$(date +%F)-eslint.log"
-          echo "eslint_msg_msg<<EOF" >> "$GITHUB_OUTPUT"
-          head -n 20 "$(date +%F)-eslint.log" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "Current Path: ${PWD}"
+          echo "Node Version: $(node -v)"
+          echo "NPM Version: $(npm -v)"
+          echo "PNPM Version: $(pnpm -v)"
+          ls -la
   
-  check_prettier:
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
-      - name: Run Prettier
-        id: prettier
-        continue-on-error: true
-        run: |
-          npm run format:check | tee "$(date +%F)-prettier.log"
-          echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
-          head -n 20 "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
