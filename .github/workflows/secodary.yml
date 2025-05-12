@@ -73,4 +73,5 @@ jobs:
             echo "Branch: ${{ github.ref }}"
             echo "Commit: ${{ github.sha }}"
 
+            echo "Prettier Check Status: ${{ needs.checkout.outputs.outcome }}"
             echo "Prettier Message: $PRETTIER_MSG"
