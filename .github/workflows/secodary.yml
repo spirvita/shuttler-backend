@@ -7,8 +7,11 @@ on:
       - daniel
 
 jobs:
-  checkout:
+  check_lint:
     runs-on: ubuntu-latest
+    outputs:
+      eslint_output: ${{ steps.eslint.outputs.eslint_msg }}
+      prettier_output: ${{ steps.prettier.outputs.prettier_msg }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,17 +29,40 @@ jobs:
           npm install -g pnpm
           pnpm install
 
-  check_lint:
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
       - name: Run ESLint
         id: eslint
         continue-on-error: true
         run: |
-          echo "Current Path: ${PWD}"
-          echo "Node Version: $(node -v)"
-          echo "NPM Version: $(npm -v)"
-          echo "PNPM Version: $(pnpm -v)"
-          ls -la
+          npm run lint | tee "$(date +%F)-eslint.log"
+          echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
+          head -n 20 "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
   
+  check_prettier:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          repository: shuttler-tw/shuttler-backend
+          ref: daniel
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.15.0'
+
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install
+
+      - name: Run Prettier
+        id: prettier
+        continue-on-error: true
+        run: |
+          npm run format:check | tee "$(date +%F)-prettier.log"
+          echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
+          head -n 20 "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
