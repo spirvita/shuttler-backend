@@ -32,7 +32,7 @@ jobs:
         run: |
           npm run lint | tee > $(date +%F)-eslint.log
           echo "eslint_msg<<EOF" >> ${GITHUB_OUTPUT}
-          cat $(date +%F)-eslint.log >> ${GITHUB_OUTPUT}
+          head -n 20 $(date +%F)-eslint.log >> ${GITHUB_OUTPUT}
           echo "..." >> ${GITHUB_OUTPUT}
           echo "EOF" >> ${GITHUB_OUTPUT}
 
@@ -41,8 +41,8 @@ jobs:
         continue-on-error: true
         run: |
           npm run format:check | tee > $(date +%F)-prettier.log
-          echo "eslint_msg<<EOF" >> ${GITHUB_OUTPUT}
-          cat $(date +%F)-prettier.log >> ${GITHUB_OUTPUT}
+          echo "prettier_msg<<EOF" >> ${GITHUB_OUTPUT}
+          head -n 20 $(date +%F)-prettier.log >> ${GITHUB_OUTPUT}
           echo "..." >> ${GITHUB_OUTPUT}
           echo "EOF" >> ${GITHUB_OUTPUT}
 
@@ -54,23 +54,20 @@ jobs:
           color: "#48f442"
           username: 'GITHUB_BOT'
           message: |
-            **ESLint Report**
-
-            ```
-            ${{ steps.eslint.outputs.eslint_msg }}
-            ```
-
-            **Prettier Report**
-
-            ```
-            ${{ steps.prettier.outputs.eslint_msg }}
-            ```
-
             **Commit Info**
             👉 Triggered by: `${{ github.event_name }}`
             🟢 Repository: `${{ github.repository }}`
             🟡 Branch: `${{ github.ref }}`
             🔁 Commit: `${{ github.sha }}`
+            **ESLint Report**
+            ```
+            ${{ steps.eslint.outputs.eslint_msg }}
+            ```
+
+            **Prettier Report**
+            ```
+            ${{ steps.prettier.outputs.prettier_msg }}
+            ```
 
 
 
