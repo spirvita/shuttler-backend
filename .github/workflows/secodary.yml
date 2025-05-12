@@ -89,7 +89,7 @@ jobs:
   notify_lint_discord:
     runs-on: ubuntu-latest
     needs: checkout
-    if: failure()
+    if: needs.checkout.outputs.eslint_status == 'failure'
     steps:
       - name: Notify ESLint to Discord
         uses: appleboy/discord-action@v1.2.0
