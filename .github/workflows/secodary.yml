@@ -52,8 +52,8 @@ jobs:
     needs: checkout
     steps:
       - env:
-          ESLINT_MSG: ${{ needs.check_lint.outputs.eslint_msg }}
-          PRETTIER_MSG: ${{ needs.check_lint.outputs.prettier_msg }}
+          ESLINT_MSG: ${{ needs.checkout.outputs.eslint_msg }}
+          PRETTIER_MSG: ${{ needs.checkout.outputs.prettier_msg }}
         run: |
           echo "ESLint Message: $ESLINT_MSG"
           echo "Prettier Message: $PRETTIER_MSG"
