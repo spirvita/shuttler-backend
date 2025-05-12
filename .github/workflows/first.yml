@@ -63,6 +63,9 @@ jobs:
             🔁 Commit: `${{ github.sha }}`
             **ESLint Result**
 
-            ```
-            ${{ steps.eslint.outputs.eslint_msg }}
+            ```json
+            {
+              "status": "${{ steps.eslint.outcome }}",
+              "message": "${{ steps.eslint.outputs.eslint_msg }}"
+            }
             ```
