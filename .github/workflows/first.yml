@@ -1,10 +1,10 @@
 name: Checkout Code
 
 on:
-  workflow_dispatch: {}
   push:
     branches:
       - daniel
+  workflow_dispatch:
 
 jobs:
   checkout:
@@ -36,24 +36,6 @@ jobs:
           echo "..." >> ${GITHUB_OUTPUT}
           echo "EOF" >> ${GITHUB_OUTPUT}
 
-      - name: Notify on Discord
-        uses: appleboy/discord-action@v1.2.0
-        with:
-          webhook_id: ${{ secrets.WEBHOOK_ID }}
-          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
-          color: "#48f442"
-          username: 'GITHUB_BOT'
-          message: |
-            **Commit Info**
-            👉 Triggered by: `${{ github.event_name }}`
-            🟢 Repository: `${{ github.repository }}`
-            🟡 Branch: `${{ github.ref }}`
-            🔁 Commit: `${{ github.sha }}`
-            **ESLint Report**
-            ```
-            ${{ steps.eslint.outputs.eslint_msg }}
-            ```
-
       - name: Run Check Prettier Formatting
         id: prettier
         continue-on-error: true
@@ -65,7 +47,7 @@ jobs:
           echo "EOF" >> ${GITHUB_OUTPUT}
 
       - name: Notify on Discord
-        uses: appleboy/discord-action@1.2.0
+        uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
@@ -81,6 +63,3 @@ jobs:
             ```
             ${{ steps.prettier.outputs.prettier_msg }}
             ```
-
-
-
