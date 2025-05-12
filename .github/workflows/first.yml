@@ -32,21 +32,19 @@ jobs:
         run: |
           npm run lint | tee "$(date +%F)-eslint.log"
           echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
-          head -n 20 "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
+          cat "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
           echo "..." >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # - name: Run Check Prettier Formatting
-      #   id: prettier
-      #   continue-on-error: true
-      #   run: |
-      #     npm run format:check | tee "$(date +%F)-prettier.log"
-      #     {
-      #       echo "prettier_msg<<EOF"
-      #       head -n 20 "$(date +%F)-prettier.log"
-      #       echo "..."
-      #       echo "EOF"
-      #     } >> $GITHUB_OUTPUT
+      - name: Run Check Prettier Formatting
+        id: prettier
+        continue-on-error: true
+        run: |
+          npm run format:check | tee "$(date +%F)-prettier.log"
+          echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
+          cat "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
+          echo "..." >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify on Discord
         uses: appleboy/discord-action@v1.2.0
@@ -56,8 +54,12 @@ jobs:
           color: "#48f442"
           username: 'GITHUB_BOT'
           message: |
-            **ESLint Result**
+            Triggered by: `${{ github.event_name }}`
+            Repository: `${{ github.repository }}`
+            Branch: `${{ github.ref }}`
+            Commit: `${{ github.sha }}`
 
-            status: ${{ steps.eslint.outcome }}
-            conclusion: ${{ steps.eslint.conclusion }}
-            message: ${{ steps.eslint.outputs.eslint_msg }}
+            Check ESLint: ${{ steps.eslint.outcome }}
+            ```
+            ${{ steps.eslint.outputs.eslint_msg }}
+            ```
