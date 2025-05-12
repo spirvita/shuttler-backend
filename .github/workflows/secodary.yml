@@ -10,7 +10,9 @@ jobs:
   checkout:
     runs-on: ubuntu-latest
     outputs:
+      eslint_status: ${{ steps.eslint.outcome }}
       eslint_msg: ${{ steps.eslint.outputs.eslint_msg }}
+      prettier_status: ${{ steps.prettier.outcome }}
       prettier_msg: ${{ steps.prettier.outputs.prettier_msg }}
     steps:
       - name: Checkout Code
@@ -59,6 +61,7 @@ jobs:
             echo "Branch: ${{ github.ref }}"
             echo "Commit: ${{ github.sha }}"
 
+            echo "ESLint Check Status: ${{ needs.checkout.outputs.eslint_status }}"
             echo "ESLint Message: $ESLINT_MSG"
 
   check_prettier:
@@ -73,5 +76,5 @@ jobs:
             echo "Branch: ${{ github.ref }}"
             echo "Commit: ${{ github.sha }}"
 
-            echo "Prettier Check Status: ${{ needs.checkout.outputs.outcome }}"
+            echo "Prettier Check Status: ${{ needs.checkout.outputs.prettier_status }}"
             echo "Prettier Message: $PRETTIER_MSG"
