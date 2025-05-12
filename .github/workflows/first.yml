@@ -44,7 +44,7 @@ jobs:
           cat "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Notify on Discord
+      - name: Notify on Discord on ESLint
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
@@ -61,6 +61,20 @@ jobs:
             ```
             ${{ steps.eslint.outputs.eslint_msg }}
             ```
+
+      - name: Notify on Discord Prettier
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: "#48f442"
+          username: 'GITHUB_BOT'
+          message: |
+            Triggered by: `${{ github.event_name }}`
+            Repository: `${{ github.repository }}`
+            Branch: `${{ github.ref }}`
+            Commit: `${{ github.sha }}`
+
             Check Prettier Formatting: ${{ steps.prettier.outcome }}
             ```
             ${{ steps.prettier.outputs.prettier_msg }}
