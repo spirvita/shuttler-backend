@@ -91,7 +91,6 @@ jobs:
     needs: checkout
     steps:
       - name: Notify ESLint to Discord
-        if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
@@ -101,10 +100,6 @@ jobs:
           username: 'GITHUB_BOT'
           message: |
             **ESLint Check Status:** `${{ needs.checkout.outputs.eslint_status }}`
-            Triggered by: `${{ github.event_name }}`
-            Repository: `${{ github.repository }}`
-            Branch: `${{ github.ref }}`
-            Commit: `${{ github.sha }}`
 
             ```
             ${{ needs.checkout.outputs.eslint_msg }}
