@@ -54,6 +54,16 @@ jobs:
       - env:
           ESLINT_MSG: ${{ needs.checkout.outputs.eslint_msg }}
           PRETTIER_MSG: ${{ needs.checkout.outputs.prettier_msg }}
-        run: |
-          echo "ESLint Message: $ESLINT_MSG"
-          echo "Prettier Message: $PRETTIER_MSG"
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: "#48f442"
+          username: 'GITHUB_BOT'
+          message: |
+            Triggered by: `${{ github.event_name }}`
+            Repository: `${{ github.repository }}`
+            Branch: `${{ github.ref }}`
+            Commit: `${{ github.sha }}`
+
+            echo "ESLint Message: $ESLINT_MSG"
+            echo "Prettier Message: $PRETTIER_MSG"
