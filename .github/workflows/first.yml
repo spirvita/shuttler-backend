@@ -61,8 +61,12 @@ jobs:
             🟢 Repository: `${{ github.repository }}`
             🟡 Branch: `${{ github.ref }}`
             🔁 Commit: `${{ github.sha }}`
-            Check ESLint: `${{ steps.eslint.outcome }}`
+
             **ESLint Result**
-            ```
-            "${{ steps.eslint.outputs.eslint_msg }}"
+
+            ```json
+            {
+              "status": "${{ steps.eslint.outcome }}",
+              "eslint_msg": "${{ steps.eslint.outputs.eslint_msg }}"
+            }
             ```
