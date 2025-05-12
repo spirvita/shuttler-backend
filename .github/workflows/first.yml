@@ -38,17 +38,17 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
-      - name: Run Check Prettier Formatting
-        id: prettier
-        continue-on-error: true
-        run: |
-          npm run format:check | tee "$(date +%F)-prettier.log"
-          {
-            echo "prettier_msg<<EOF"
-            head -n 20 "$(date +%F)-prettier.log"
-            echo "..."
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+      # - name: Run Check Prettier Formatting
+      #   id: prettier
+      #   continue-on-error: true
+      #   run: |
+      #     npm run format:check | tee "$(date +%F)-prettier.log"
+      #     {
+      #       echo "prettier_msg<<EOF"
+      #       head -n 20 "$(date +%F)-prettier.log"
+      #       echo "..."
+      #       echo "EOF"
+      #     } >> $GITHUB_OUTPUT
 
       - name: Notify on Discord
         uses: appleboy/discord-action@v1.2.0
@@ -67,11 +67,5 @@ jobs:
             ```json
             {
               "eslint_msg": "${{ steps.eslint.outputs.eslint_msg }}"
-            }
-            ```
-            **Prettier Result**
-            ```json
-            {
-              "prettier_msg": "${{ steps.prettier.outputs.prettier_msg }}"
             }
             ```
