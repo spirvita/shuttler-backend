@@ -62,3 +62,23 @@ jobs:
           echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
           head -n 20 "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
+  notify_discord:
+    runs-on: ubuntu-latest
+    needs: [check_lint, check_prettier]
+    steps:
+      - name: Notify on Discord
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: "#48f442"
+          username: 'GITHUB_BOT'
+          message: |
+            Triggered by: `${{ github.event_name }}`
+            Repository: `${{ github.repository }}`
+            Branch: `${{ github.ref }}`
+            Commit: `${{ github.sha }}`
+
+            Check ESLint: ${{ needs.check_lint.outputs.eslint_msg }}
+            Check Prettier: ${{ needs.check_prettier.outputs.prettier_msg }}
