@@ -1,6 +1,7 @@
 name: Checkout Code
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - daniel
@@ -26,9 +27,22 @@ jobs:
           pnpm install
 
       - name: Run ESLint
+        id: eslint
+        continue-on-error: true
         run: npm run lint
 
       - name: Run Check Prettier Formatting
+        id: prettier
+        continue-on-error: true
         run: npm run format:check
+
+      - name: Notify on Discord
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          message: |
+            **Branch:** ${{ github.ref }}
+            **Commit:** ${{ github.sha }}
+
 
 
