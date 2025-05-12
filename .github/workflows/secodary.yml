@@ -78,3 +78,26 @@ jobs:
 
             echo "Prettier Check Status: ${{ needs.checkout.outputs.prettier_status }}"
             echo "Prettier Message: $PRETTIER_MSG"
+
+  notify_lint:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Notify ESLint to Discord
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: ${{ needs.checkout.outputs.eslint_status == 'success' && '#48f442' || '#ff0000' }}
+          username: 'GITHUB_BOT'
+          message: |
+            **ESLint Check**
+            Triggered by: `${{ github.event_name }}`
+            Repository: `${{ github.repository }}`
+            Branch: `${{ github.ref }}`
+            Commit: `${{ github.sha }}`
+
+            Status: `${{ needs.checkout.outputs.eslint_status }}`
+            ```
+            ${{ needs.checkout.outputs.eslint_msg }}
+            ```
