@@ -15,7 +15,7 @@ app.use(express.json()); // parser JSON request
 app.use(express.urlencoded({ extended: false })); // parser URL encoded request
 app.use(passport.initialize()); // 啟用 passport
 app.use(
-  pinoHttp({
+  		pinoHttp({
     logger, // 使用自訂義的 pino logger
     serializers: {
       // serializers自訂req在log的格式
