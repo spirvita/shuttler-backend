@@ -31,17 +31,20 @@ jobs:
         continue-on-error: true
         run: |
           npm run lint | tee > $(date +%F)-eslint.log
-          echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
-          head -n 20 $(date +%F)-eslint.log >> $GITHUB_OUTPUT
-          echo "..." >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "eslint_msg<<EOF" >> ${GITHUB_OUTPUT}
+          cat $(date +%F)-eslint.log >> ${GITHUB_OUTPUT}
+          echo "..." >> ${GITHUB_OUTPUT}
+          echo "EOF" >> ${GITHUB_OUTPUT}
 
       - name: Run Check Prettier Formatting
         id: prettier
         continue-on-error: true
         run: |
           npm run format:check | tee > $(date +%F)-prettier.log
-          cat $(date +%F)-prettier.log
+          echo "eslint_msg<<EOF" >> ${GITHUB_OUTPUT}
+          cat $(date +%F)-prettier.log >> ${GITHUB_OUTPUT}
+          echo "..." >> ${GITHUB_OUTPUT}
+          echo "EOF" >> ${GITHUB_OUTPUT}
 
       - name: Notify on Discord
         uses: appleboy/discord-action@v1.2.0
@@ -51,11 +54,21 @@ jobs:
           color: "#48f442"
           username: 'GITHUB_BOT'
           message: |
-            **ESLint Report** (Top 20 lines)
+            **ESLint Report**
+
             ```
-            ${{ steps.eslint.outputs.eslint_msg }}
+            ${{ steps.eslint.outputs }}
             ```
+
+            **Prettier Report**
+
+            ```
+            ${{ steps.prettier.outputs }}
+            ```
+
+            **Commit Info**
             👉 Triggered by: `${{ github.event_name }}`
+            🟢 Repository: `${{ github.repository }}`
             🟡 Branch: `${{ github.ref }}`
             🔁 Commit: `${{ github.sha }}`
 
