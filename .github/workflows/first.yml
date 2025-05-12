@@ -59,7 +59,3 @@ jobs:
             🟢 Repository: `${{ github.repository }}`
             🟡 Branch: `${{ github.ref }}`
             🔁 Commit: `${{ github.sha }}`
-            **Prettier Report**
-            ```
-            ${{ steps.prettier.outputs.prettier_msg }}
-            ```
