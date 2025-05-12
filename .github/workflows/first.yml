@@ -31,7 +31,10 @@ jobs:
         continue-on-error: true
         run: |
           npm run lint | tee > $(date +%F)-eslint.log
-          cat $(date +%F)-eslint.log
+          echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
+          head -n 20 $(date +%F)-eslint.log >> $GITHUB_OUTPUT
+          echo "..." >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Check Prettier Formatting
         id: prettier
@@ -48,9 +51,13 @@ jobs:
           color: "#48f442"
           username: 'GITHUB_BOT'
           message: |
-            The ${{ github.event_name }} event triggered first step.
-            **Branch:** ${{ github.ref }}
-            **Commit:** ${{ github.sha }}
+            **ESLint Report** (Top 20 lines)
+            ```
+            ${{ steps.eslint.outputs.eslint_msg }}
+            ```
+            👉 Triggered by: `${{ github.event_name }}`
+            🟡 Branch: `${{ github.ref }}`
+            🔁 Commit: `${{ github.sha }}`
 
 
 
