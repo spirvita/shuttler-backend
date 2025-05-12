@@ -56,6 +56,42 @@ jobs:
           color: "#48f442"
           username: 'GITHUB_BOT'
           message: |
+            Post job cleanup.
+            /usr/bin/git version
+            git version 2.49.0
+            Temporarily overriding HOME='/home/runner/work/_temp/73ac5bd2-4d77-430b-8b2b-16c5e90c918c' before making global git config changes
+            Adding repository directory to the temporary git global config as a safe directory
+            /usr/bin/git config --global --add safe.directory /home/runner/work/shuttler-backend/shuttler-backend
+            /usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+            /usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+            http.https://github.com/.extraheader
+            /usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+            Post job cleanup.
+            /usr/bin/git version
+            git version 2.49.0
+            Temporarily overriding HOME='/home/runner/work/_temp/73ac5bd2-4d77-430b-8b2b-16c5e90c918c' before making global git config changes
+            Adding repository directory to the temporary git global config as a safe directory
+            /usr/bin/git config --global --add safe.directory /home/runner/work/shuttler-backend/shuttler-backend
+            /usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+            /usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+            http.https://github.com/.extraheader
+            /usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+            Post job cleanup.
+            /usr/bin/git version
+            git version 2.49.0
+            Temporarily overriding HOME='/home/runner/work/_temp/73ac5bd2-4d77-430b-8b2b-16c5e90c918c' before making global git config changes
+            Adding repository directory to the temporary git global config as a safe directory
+            /usr/bin/git config --global --add safe.directory /home/runner/work/shuttler-backend/shuttler-backend
+            /usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+            /usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+            http.https://github.com/.extraheader
+            /usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+            /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
             **Commit Info**
             👉 Triggered by: `${{ github.event_name }}`
             🟢 Repository: `${{ github.repository }}`
