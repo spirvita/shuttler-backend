@@ -91,7 +91,7 @@ jobs:
     needs: checkout
     steps:
       - name: Notify ESLint to Discord
-        if: failure()
+        if: always()
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
