@@ -45,6 +45,13 @@ jobs:
         continue-on-error: true
         run: |
           npm run format:check | tee "$(date +%F)-prettier.log"
+
+          if [ $? -eq 0 ]; then
+            echo "prettier_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "prettier_status=failure" >> $GITHUB_OUTPUT
+          fi
+
           echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
           head -n 20 "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
