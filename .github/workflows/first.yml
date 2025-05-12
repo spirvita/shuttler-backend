@@ -33,7 +33,6 @@ jobs:
           npm run lint | tee "$(date +%F)-eslint.log"
           echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
           cat "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
-          echo "..." >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Run Check Prettier Formatting
@@ -43,7 +42,6 @@ jobs:
           npm run format:check | tee "$(date +%F)-prettier.log"
           echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
           cat "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
-          echo "..." >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify on Discord
@@ -62,4 +60,8 @@ jobs:
             Check ESLint: ${{ steps.eslint.outcome }}
             ```
             ${{ steps.eslint.outputs.eslint_msg }}
+            ```
+            Check Prettier Formatting: ${{ steps.prettier.outcome }}
+            ```
+            ${{ steps.prettier.outputs.prettier_msg }}
             ```
