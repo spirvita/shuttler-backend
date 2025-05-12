@@ -54,6 +54,8 @@ jobs:
       - env:
           ESLINT_MSG: ${{ needs.checkout.outputs.eslint_msg }}
           PRETTIER_MSG: ${{ needs.checkout.outputs.prettier_msg }}
+        name: Notify on Discord Prettier
+        uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
