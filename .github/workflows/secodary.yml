@@ -1,6 +1,9 @@
 name: Lint and Notify
 
 on:
+  push:
+    branches:
+      - daniel
   workflow_dispatch:
 
 jobs:
