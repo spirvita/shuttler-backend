@@ -37,7 +37,7 @@ jobs:
           echo "EOF" >> ${GITHUB_OUTPUT}
 
       - name: Notify on Discord
-        uses: appleboy/discord-action@v1.4.1
+        uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
@@ -65,7 +65,7 @@ jobs:
           echo "EOF" >> ${GITHUB_OUTPUT}
 
       - name: Notify on Discord
-        uses: appleboy/discord-action@v1.4.1
+        uses: appleboy/discord-action@1.2.0
         with:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
