@@ -32,7 +32,7 @@ jobs:
         run: |
           npm run lint | tee > $(date +%F)-eslint.log
           echo "eslint_msg<<EOF" >> ${GITHUB_OUTPUT}
-          head -n 20 $(date +%F)-eslint.log >> ${GITHUB_OUTPUT}
+          cat 20 $(date +%F)-eslint.log >> ${GITHUB_OUTPUT}
           echo "..." >> ${GITHUB_OUTPUT}
           echo "EOF" >> ${GITHUB_OUTPUT}
 
@@ -59,3 +59,15 @@ jobs:
             🟢 Repository: `${{ github.repository }}`
             🟡 Branch: `${{ github.ref }}`
             🔁 Commit: `${{ github.sha }}`
+            **ESLint Result**
+            ```json
+            {
+              "eslint_msg": "${{ steps.eslint.outputs.eslint_msg }}"
+            }
+            ```
+            **Prettier Result**
+            ```json
+            {
+              "prettier_msg": "${{ steps.prettier.outputs.prettier_msg }}"
+            }
+            ```
