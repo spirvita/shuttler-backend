@@ -32,7 +32,7 @@ jobs:
         run: |
           npm run lint | tee "$(date +%F)-eslint.log"
           echo "eslint_msg<<EOF" >> $GITHUB_OUTPUT
-          cat $(date +%F)-eslint.log >> $GITHUB_OUTPUT
+          head -n 20 "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
           echo "..." >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
