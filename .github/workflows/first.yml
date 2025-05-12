@@ -35,15 +35,6 @@ jobs:
           cat "$(date +%F)-eslint.log" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Run Check Prettier Formatting
-        id: prettier
-        continue-on-error: true
-        run: |
-          npm run format:check | tee "$(date +%F)-prettier.log"
-          echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
-          cat "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Notify on Discord on ESLint
         uses: appleboy/discord-action@v1.2.0
         with:
@@ -61,6 +52,15 @@ jobs:
             ```
             ${{ steps.eslint.outputs.eslint_msg }}
             ```
+
+      - name: Run Check Prettier Formatting
+        id: prettier
+        continue-on-error: true
+        run: |
+          npm run format:check | tee "$(date +%F)-prettier.log"
+          echo "prettier_msg<<EOF" >> $GITHUB_OUTPUT
+          cat "$(date +%F)-prettier.log" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify on Discord Prettier
         uses: appleboy/discord-action@v1.2.0
