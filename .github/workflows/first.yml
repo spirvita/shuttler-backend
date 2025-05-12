@@ -64,6 +64,19 @@ jobs:
             ${{ steps.eslint.outputs.eslint_msg }}
             ```
 
+      - name: Notify on Discord
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          color: "#48f442"
+          username: 'GITHUB_BOT'
+          message: |
+            **Commit Info**
+            👉 Triggered by: `${{ github.event_name }}`
+            🟢 Repository: `${{ github.repository }}`
+            🟡 Branch: `${{ github.ref }}`
+            🔁 Commit: `${{ github.sha }}`
             **Prettier Report**
             ```
             ${{ steps.prettier.outputs.prettier_msg }}
