@@ -97,7 +97,7 @@ jobs:
           webhook_id: ${{ secrets.WEBHOOK_ID }}
           webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
           # color: ${{ needs.checkout.outputs.eslint_status == 'success' && '#48f442' || '#ff0000' }}
-          color: ${{ startsWith(needs.checkout.outputs.eslint_status, 'success') && '#48f442' || '#ff0000' }}
+          color: '#ff0000'
           username: 'GITHUB_BOT'
           message: |
             **ESLint Check Status:** `${{ needs.checkout.outputs.eslint_status }}`
