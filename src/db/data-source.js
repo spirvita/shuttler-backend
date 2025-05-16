@@ -9,6 +9,7 @@ const ActivityFacilities = require('../entities/ActivityFacilities');
 const Levels = require('../entities/Levels');
 const ActivityLevels = require('../entities/ActivityLevels');
 const Cities = require('../entities/Cities');
+const MemberFavoriteActivities = require('../entities/MemberFavoriteActivities');
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -28,6 +29,7 @@ const dataSource = new DataSource({
     Levels,
     ActivityLevels,
     Cities,
+    MemberFavoriteActivities,
   ],
   ssl: config.get('db.ssl'),
 });

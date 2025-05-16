@@ -15,6 +15,7 @@ const runAllSeeds = async () => {
     'seed-activityLevels.js',
     'seed-activityFacilities.js',
     'seed-activityPictures.js',
+    'seed-memberFavoriteActivities.js',
   ];
 
   for (const file of seedFilesInOrder) {

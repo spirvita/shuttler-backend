@@ -1,8 +1,8 @@
 const { EntitySchema } = require('typeorm');
 
 module.exports = new EntitySchema({
-  name: 'ActivityPictures',
-  tableName: 'ACTIVITY_PICTURES',
+  name: 'MemberFavoriteActivities',
+  tableName: 'MEMBER_FAVORITE_ACTIVITIES',
   columns: {
     id: {
       primary: true,
@@ -10,16 +10,12 @@ module.exports = new EntitySchema({
       generated: 'uuid',
       nullable: false,
     },
-    activity_id: {
+    member_id: {
       type: 'uuid',
       nullable: false,
     },
-    url: {
-      type: 'text',
-      nullable: false,
-    },
-    sort_order: {
-      type: 'int',
+    activity_id: {
+      type: 'uuid',
       nullable: false,
     },
     created_at: {
@@ -27,17 +23,21 @@ module.exports = new EntitySchema({
       nullable: false,
       createDate: true,
     },
-    updated_at: {
-      type: 'timestamp',
-      nullable: false,
-      updateDate: true,
-    },
   },
   relations: {
+    member: {
+      target: 'Members',
+      type: 'many-to-one',
+      inverseSide: 'MemberFavoriteActivities',
+      joinColumn: {
+        name: 'member_id',
+        referencedColumnName: 'id',
+      },
+    },
     activity: {
       target: 'Activities',
       type: 'many-to-one',
-      inverseSide: 'ActivityPictures',
+      inverseSide: 'MemberFavoriteActivities',
       joinColumn: {
         name: 'activity_id',
         referencedColumnName: 'id',

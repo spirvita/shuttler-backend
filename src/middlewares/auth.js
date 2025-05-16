@@ -30,4 +30,15 @@ const authenticateJWT = (req, res, next) => {
   })(req, res, next);
 };
 
-module.exports = { authenticateLocal, authenticateJWT };
+const optionalAuthenticateJWT = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (!err && user) {
+      req.user = user;
+    }
+
+    // 無論有無user
+    return next();
+  })(req, res, next);
+};
+
+module.exports = { authenticateLocal, authenticateJWT, optionalAuthenticateJWT };
