@@ -5,6 +5,7 @@ const db = require('./db');
 const web = require('./web');
 const jwt = require('./jwt');
 const google = require('./google');
+const aws = require('./aws');
 
 if (result.error) {
   throw result.error;
@@ -14,6 +15,7 @@ const config = {
   web,
   jwt,
   google,
+  aws,
 };
 
 class ConfigManager {

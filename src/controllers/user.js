@@ -35,15 +35,15 @@ const userController = {
   updateMemberProfile: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const { name, email, preferredLocation, level } = req.body;
+      const { name, avatar, email, preferredLocation, level } = req.body;
 
-      if (!isValidString(name) || !isValidString(email)) {
+      if ((name && !isValidString(name)) || (email && !isValidString(email))) {
         logger.warn('更新使用者資料錯誤:', '欄位未填寫正確');
         return next(appError(400, '欄位未填寫正確'));
       }
 
       // check email is valid
-      if (!isValidEmail(email)) {
+      if (email && !isValidEmail(email)) {
         logger.warn('更新使用者資料錯誤:', 'Email 格式不正確');
         return next(appError(400, 'Email 格式不正確'));
       }
@@ -75,26 +75,35 @@ const userController = {
         }
       }
 
-      const existingLevel = await dataSource.getRepository('Levels').findOne({
-        where: {
-          level,
-        },
-        select: ['id'],
-      });
+      // 檢查等級是否存在
+      let existingLevel = null;
+      if (level) {
+        existingLevel = await dataSource.getRepository('Levels').findOne({
+          where: {
+            level,
+          },
+          select: ['id'],
+        });
 
-      if (!existingLevel) {
-        logger.warn('更新使用者資料錯誤:', '等級不存在');
-        return next(appError(400, '等級不存在'));
+        if (!existingLevel) {
+          logger.warn('更新使用者資料錯誤:', '等級不存在');
+          return next(appError(400, '等級不存在'));
+        }
       }
+
+      // 更新使用者資料
       const updatedMember = await dataSource.getRepository('Members').update(
         { id },
         {
           name,
+          photo: avatar,
           email,
           region: preferredLocation,
-          level_id: existingLevel.id,
+          level_id: level ? existingLevel.id : existingLevel,
         },
       );
+
+      // 檢查更新是否成功
       if (updatedMember.affected === 0) {
         logger.warn('更新使用者資料錯誤:', '更新失敗');
         return next(appError(400, '更新使用者資料失敗'));
@@ -114,6 +123,7 @@ const userController = {
         message: '更新成功',
         data: {
           name: updateData.name,
+          avatar: updateData.photo,
           email: updateData.email,
           preferredLocation: updateData.region,
           level: updateData.level?.level || null,
