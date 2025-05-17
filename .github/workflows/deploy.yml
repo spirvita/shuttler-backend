@@ -31,10 +31,16 @@ jobs:
             docker exec -i demo-backend-amd64 /pnpm/pm2 list
             docker exec -i demo-backend-amd64 /pnpm/pm2 stop api
             docker exec -i demo-backend-amd64 /pnpm/pm2 delete api
+            echo "Show Current Database"
+            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
             echo "Delete ${DB_DATABASE_DEV } database"
             psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c 'drop database if exists "${DB_DATABASE_DEV}";'
+            echo "Show Current Database"
+            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
             echo "Create ${DB_DATABASE_DEV} database"
             psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c 'create database "${DB_DATABASE_DEV}" with owner "${DB_USERNAME}" template template0 encoding "UTF8";'
+            echo "Show Current Database"
+            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
             docker exec -i demo-backend-amd64 npm run seed
             docker exec -i demo-backend-amd64 /pnpm/pm2 start ./bin/www.js --name api
             docker exec -i demo-backend-amd64 /pnpm/pm2 status
