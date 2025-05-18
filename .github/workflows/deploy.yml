@@ -1,4 +1,4 @@
-name: Remote SSH Commanda
+name: Remote SSH Command
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
+  deployment:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
@@ -28,21 +28,44 @@ jobs:
             cd ~/work/github/shuttler-backend-dev
             git pull
             export PGPASSWORD=${DB_PASSWORD}
+
+            check_db_exists() {
+              local dbname="$1"
+              if psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '${dbname}';" | grep -q 1; then
+                echo "資料庫 ${dbname} 已存在"
+              else
+                echo "資料庫 ${dbname} 不存在"
+              fi
+            }
+          
+            echo "🔍 檢查目前 PM2 執行中的應用列表..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 list
+
+            echo "🛑 停止 PM2 中名為 api 的應用..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 stop api
+
+            echo "🗑️ 刪除 PM2 中名為 api 的應用..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 delete api
-            echo "Show Current Database"
-            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
-            echo "Delete ${DB_DATABASE_DEV } database"
-            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c 'drop database if exists "${DB_DATABASE_DEV}";'
-            echo "Show Current Database"
-            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
-            echo "Create ${DB_DATABASE_DEV} database"
-            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c 'create database "${DB_DATABASE_DEV}" with owner "${DB_USERNAME}" template template0 encoding "UTF8";'
-            echo "Show Current Database"
-            psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d postgres -c '\l;'
+
+            echo "� 開始檢查資料庫狀態..."
+            check_db_exists "${DB_DATABASE_DEV}"
+
+            echo "🔥 開始刪除資料庫 ${DB_DATABASE_DEV}..."
+            psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d postgres -c "DROP DATABASE IF EXISTS \"${DB_DATABASE_DEV}\";"
+            check_db_exists "${DB_DATABASE_DEV}"
+
+            echo "🛠️ 開始建立資料庫 ${DB_DATABASE_DEV}..."
+            psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d postgres -c "CREATE DATABASE \"${DB_DATABASE_DEV}\" WITH OWNER \"${DB_USERNAME}\" TEMPLATE template0 ENCODING 'UTF8';"
+            check_db_exists "${DB_DATABASE_DEV}"
+
+            echo "📦 開始安裝 PNPM 相依套件..."
+            docker exec -i demo-backend-amd64 /usr/local/bin/pnpm install
+            echo "✅ PNPM 相依套件安裝完成。"
+
+            echo "🌱 開始執行資料庫種子資料（seed）初始化..."
             docker exec -i demo-backend-amd64 npm run seed
+            echo "✅ 資料庫種子資料已成功執行完成。"
+
+            echo "🟢 啟動 PM2 中名為 api 的應用..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 start ./bin/www.js --name api
-            docker exec -i demo-backend-amd64 /pnpm/pm2 status
-            unset PGPASSWORD
-            echo "Deploy complete"
+            echo "🚀 Deploy complete"
