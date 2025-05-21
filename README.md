@@ -217,3 +217,29 @@
     ```
 
 </details>
+
+
+## DB migration
+
+<details>
+
+<summary>migration 相關指令</summary>
+
+- 異動 db entity，建立 migration 檔案
+```
+    pnpm migration:generate ./src/migrations/[FileName] --pretty    
+```
+
+- 執行 migration
+```
+    pnpm migration:run
+```
+- 查看尚未執行的 migrations
+```
+    pnpm migration:show
+```
+- 退回 migration
+```
+    pnpm migration:revert
+```
+</details>

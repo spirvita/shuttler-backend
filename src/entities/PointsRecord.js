@@ -1,8 +1,8 @@
 const { EntitySchema } = require('typeorm');
 
 module.exports = new EntitySchema({
-  name: 'Members',
-  tableName: 'MEMBERS',
+  name: 'PointsRecord',
+  tableName: 'POINTS_RECORD',
   columns: {
     id: {
       primary: true,
@@ -10,36 +10,22 @@ module.exports = new EntitySchema({
       generated: 'uuid',
       nullable: false,
     },
-    name: {
-      type: 'varchar',
-      length: 50,
-      nullable: false,
-    },
-    email: {
-      type: 'varchar',
-      length: 320,
-      nullable: false,
-      unique: true,
-    },
-    password: {
-      type: 'varchar',
-      length: 72,
-      nullable: false,
-      select: false,
-    },
-    photo: {
-      type: 'text',
-      nullable: true,
-    },
-    level_id: {
+    activity_id: {
       type: 'uuid',
-      nullable: true,
+      nullable: false,
     },
-    region: {
+    member_id: {
+      type: 'uuid',
+      nullable: false,
+    },
+    points_change: {
+      type: 'int',
+      nullable: false,
+    },
+    status: {
       type: 'varchar',
       length: 50,
-      array: true,
-      nullable: true,
+      nullable: false,
     },
     created_at: {
       type: 'timestamp',
@@ -53,21 +39,21 @@ module.exports = new EntitySchema({
     },
   },
   relations: {
-    activities: {
+    activity: {
       target: 'Activities',
-      type: 'one-to-many',
-      inverseSide: 'Members',
+      type: 'many-to-one',
+      inverseSide: 'pointsRecords',
       joinColumn: {
-        name: 'id',
-        referencedColumnName: 'member_id',
+        name: 'activity_id',
+        referencedColumnName: 'id',
       },
     },
-    level: {
-      target: 'Levels',
+    member: {
+      target: 'Members',
       type: 'many-to-one',
-      inverseSide: 'Members',
+      inverseSide: 'pointsRecords',
       joinColumn: {
-        name: 'level_id',
+        name: 'member_id',
         referencedColumnName: 'id',
       },
     },

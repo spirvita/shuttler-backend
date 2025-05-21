@@ -10,6 +10,10 @@ const Levels = require('../entities/Levels');
 const ActivityLevels = require('../entities/ActivityLevels');
 const Cities = require('../entities/Cities');
 const MemberFavoriteActivities = require('../entities/MemberFavoriteActivities');
+const PointsRecord = require('../entities/PointsRecord');
+const PointsOrder = require('../entities/PointsOrder');
+const PointsPlan = require('../entities/PointsPlan');
+const ActivityRegister = require('../entities/ActivityRegister');
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -30,7 +34,12 @@ const dataSource = new DataSource({
     ActivityLevels,
     Cities,
     MemberFavoriteActivities,
+    PointsRecord,
+    PointsOrder,
+    PointsPlan,
+    ActivityRegister,
   ],
+  migrations: ['src/migrations/*.js'],
   ssl: config.get('db.ssl'),
 });
 
