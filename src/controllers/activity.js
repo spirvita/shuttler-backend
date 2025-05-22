@@ -4,7 +4,140 @@ const appError = require('../utils/appError');
 const { isValidUUID } = require('../utils/validUtils');
 const { In, Not } = require('typeorm');
 
-const activitiesController = {
+const activityController = {
+  async createActivity(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { id } = req.user;
+      if (!isValidUUID(id)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+      const {
+        name,
+        pictures,
+        startTime,
+        endTime,
+        participantCount,
+        rentalLot,
+        ballType,
+        points,
+        level,
+        brief,
+        city,
+        district,
+        venueName,
+        address,
+        venueFacilities,
+        contactName,
+        contactPhone,
+        contactLine,
+        status,
+      } = req.body;
+      if (
+        !name ||
+        !startTime ||
+        !endTime ||
+        !participantCount ||
+        !rentalLot ||
+        !ballType ||
+        !points ||
+        !level ||
+        !brief ||
+        !city ||
+        !district ||
+        !venueName ||
+        !address ||
+        !venueFacilities ||
+        !contactName ||
+        !contactPhone ||
+        !contactLine ||
+        !status
+      ) {
+        return next(appError(400, '欄位未填寫正確'));
+      }
+
+      const cityData = await queryRunner.manager.getRepository('Cities').findOne({
+        where: { city, district },
+      });
+      if (!cityData) {
+        return next(appError(404, '找不到該縣市區'));
+      }
+
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const newActivity = activitiesRepo.create({
+        member_id: id,
+        name,
+        start_time: new Date(startTime),
+        end_time: new Date(endTime),
+        participant_count: participantCount,
+        rental_lot: rentalLot,
+        ball_type: ballType,
+        points,
+        brief,
+        zip_code: cityData.zip_code,
+        address,
+        venue_name: venueName,
+        contact_name: contactName,
+        contact_phone: contactPhone,
+        contact_line: contactLine,
+        status,
+      });
+      await activitiesRepo.save(newActivity);
+
+      const levels = await queryRunner.manager.getRepository('Levels').find({
+        where: { level: In(level) },
+      });
+      if (levels.length !== level.length) {
+        return next(appError(404, '無此等級'));
+      }
+      const activityLevels = levels.map((l) => ({
+        activity_id: newActivity.id,
+        level_id: l.id,
+      }));
+      await queryRunner.manager.getRepository('ActivityLevels').save(activityLevels);
+
+      const facilities = await queryRunner.manager.getRepository('Facilities').find({
+        where: { name: In(venueFacilities) },
+      });
+      if (facilities.length !== venueFacilities.length) {
+        return next(appError(404, '無此設施'));
+      }
+      const activityFacilities = facilities.map((f) => ({
+        activity_id: newActivity.id,
+        facility_id: f.id,
+      }));
+      await queryRunner.manager.getRepository('ActivityFacilities').save(activityFacilities);
+
+      const activityPictures = pictures.map((p, index) => ({
+        activity_id: newActivity.id,
+        url: p,
+        sort_order: index + 1,
+      }));
+      await queryRunner.manager.getRepository('ActivityPictures').save(activityPictures);
+
+      await queryRunner.commitTransaction();
+
+      if (status === 'published') {
+        res.status(201).json({
+          message: '發佈成功',
+          activityId: newActivity.id,
+        });
+      } else {
+        res.status(201).json({
+          message: '儲存成功',
+        });
+      }
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('新建活動錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  },
   async upcomingActivities(req, res, next) {
     try {
       const id = req.user ? req.user.id : null;
@@ -332,4 +465,4 @@ const activitiesController = {
   },
 };
 
-module.exports = activitiesController;
+module.exports = activityController;

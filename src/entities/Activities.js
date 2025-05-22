@@ -21,11 +21,11 @@ module.exports = new EntitySchema({
       nullable: false,
     },
     start_time: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
     },
     end_time: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
     },
     venue_name: {
@@ -53,13 +53,14 @@ module.exports = new EntitySchema({
     },
     booked_count: {
       type: 'integer',
+      default: 0,
       nullable: false,
     },
     rental_lot: {
       type: 'integer',
       nullable: false,
     },
-    event_brief: {
+    brief: {
       type: 'text',
       nullable: false,
     },
@@ -69,7 +70,8 @@ module.exports = new EntitySchema({
       nullable: false,
     },
     contact_phone: {
-      type: 'integer',
+      type: 'varchar',
+      length: 50,
       nullable: false,
     },
     contact_line: {
@@ -81,17 +83,19 @@ module.exports = new EntitySchema({
       type: 'integer',
       nullable: false,
     },
-    is_published: {
-      type: 'boolean',
-      default: false,
+    status: {
+      type: 'enum',
+      enum: ['draft', 'published', 'cancelled'],
+      default: 'draft',
+      nullable: false,
     },
     created_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       createDate: true,
     },
     updated_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       updateDate: true,
     },
