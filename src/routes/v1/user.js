@@ -5,5 +5,6 @@ const { authenticateJWT } = require('../../middlewares/auth');
 
 router.get('/profile', authenticateJWT, userController.getMemberProfile);
 router.put('/profile', authenticateJWT, userController.updateMemberProfile);
+router.get('/favorites', authenticateJWT, userController.getMemberFavorites);
 
 module.exports = router;

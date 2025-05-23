@@ -11,7 +11,7 @@ const activitiesController = {
 
       const activities = await activitiesRepo.find({
         where: {
-          is_published: true,
+          status: 'published',
         },
         relations: ['member'],
       });
@@ -39,8 +39,7 @@ const activitiesController = {
           activityId: activity.id,
           date,
           name: activity.name,
-          memberName: activity.member.name,
-          memberPhoto: activity.member.photo,
+          contactAvatar: activity.member.photo,
           venueName: activity.venue_name,
           startTime,
           endTime,
@@ -134,7 +133,7 @@ const activitiesController = {
           bookedCount: activities.booked_count,
           rentalLot: activities.rental_lot,
           brief: activities.brief,
-          contactAvator: activities.member.photo,
+          contactAvatar: activities.member.photo,
           contactName: activities.contact_name,
           contactPhone: activities.contact_phone,
           contactLine: activities.contact_line,

@@ -134,6 +134,76 @@ const userController = {
       next(error);
     }
   },
+  getMemberFavorites: async (req, res, next) => {
+    try {
+      const { id } = req.user;
+      const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
+      const favorites = await dataSource.getRepository('MemberFavoriteActivities').find({
+        where: {
+          member_id: id,
+        },
+        relations: ['member', 'activity'],
+      });
+
+      if (!favorites) {
+        res.status(200).json({
+          status: 'success',
+          data: [],
+        });
+      }
+
+      const data = [];
+
+      for (const favorite of favorites) {
+        const start = new Date(favorite.activity.start_time);
+        const end = new Date(favorite.activity.end_time);
+        const date = start.toISOString().split('T')[0];
+        const startTime = start.toISOString().split('T')[1].slice(0, 5);
+        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+
+        const cityRepo = dataSource.getRepository('Cities');
+        const cityData = await cityRepo.findOne({
+          where: {
+            zip_code: favorite.activity.zip_code,
+          },
+        });
+
+        const levels = await activityLevelsRepo.find({
+          where: { activity: { id: favorite.activity.id } },
+          relations: ['level'],
+        });
+        const level = levels.map((al) => al.level.name);
+
+        data.push({
+          activityId: favorite.activity.id,
+          name: favorite.activity.name,
+          date,
+          startTime,
+          endTime,
+          venueName: favorite.activity.venue_name,
+          city: cityData.city,
+          district: cityData.district,
+          address: favorite.activity.address,
+          level,
+          participantCount: favorite.activity.participant_count,
+          bookedCount: favorite.activity.booked_count,
+          contactAvatar: favorite.member.photo,
+          contactName: favorite.activity.contact_name,
+          contactPhone: favorite.activity.contact_phone,
+          contactLine: favorite.activity.contact_line,
+          points: favorite.activity.points,
+        });
+      }
+
+      res.status(200).json({
+        message: '成功',
+        data,
+      });
+    } catch (error) {
+      logger.error('取得使用者收藏錯誤:', error);
+      next(error);
+    }
+  },
 };
 
 module.exports = userController;
