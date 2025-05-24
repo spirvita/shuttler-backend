@@ -18,18 +18,23 @@ module.exports = new EntitySchema({
       type: 'uuid',
       nullable: false,
     },
+    // 報名人數
+    participant_count: {
+      type: 'int',
+      nullable: false,
+    },
     status: {
       type: 'varchar',
       length: 50,
       nullable: false,
     },
     created_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       createDate: true,
     },
     updated_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       updateDate: true,
     },

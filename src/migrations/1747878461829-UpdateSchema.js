@@ -13,6 +13,9 @@ module.exports = class UpdateSchema1747878461829 {
 
   async up(queryRunner) {
     await queryRunner.query(`
+      CREATE TYPE "public"."ACTIVITIES_status_enum" AS ENUM ('draft', 'published', 'cancelled')
+    `);
+    await queryRunner.query(`
       ALTER TABLE "ACTIVITIES" RENAME COLUMN "event_brief" TO "brief"
     `);
     await queryRunner.query(`

@@ -41,6 +41,11 @@ module.exports = new EntitySchema({
       array: true,
       nullable: true,
     },
+    points: {
+      type: 'int',
+      default: 0,
+      nullable: false,
+    },
     created_at: {
       type: 'timestamptz',
       nullable: false,

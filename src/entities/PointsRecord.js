@@ -12,7 +12,7 @@ module.exports = new EntitySchema({
     },
     activity_id: {
       type: 'uuid',
-      nullable: false,
+      nullable: true,
     },
     member_id: {
       type: 'uuid',
@@ -22,32 +22,23 @@ module.exports = new EntitySchema({
       type: 'int',
       nullable: false,
     },
-    status: {
-      type: 'varchar',
-      length: 50,
+    recordType: {
+      type: 'enum',
+      enum: ['addPoint', 'applyAct', 'cancelAct', 'suspendAct'],
       nullable: false,
     },
     created_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       createDate: true,
     },
     updated_at: {
-      type: 'timestamp',
+      type: 'timestamptz',
       nullable: false,
       updateDate: true,
     },
   },
   relations: {
-    activity: {
-      target: 'Activities',
-      type: 'many-to-one',
-      inverseSide: 'pointsRecords',
-      joinColumn: {
-        name: 'activity_id',
-        referencedColumnName: 'id',
-      },
-    },
     member: {
       target: 'Members',
       type: 'many-to-one',
