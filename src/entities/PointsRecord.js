@@ -39,6 +39,15 @@ module.exports = new EntitySchema({
     },
   },
   relations: {
+    activity: {
+      target: 'Activities',
+      type: 'many-to-one',
+      inverseSide: 'pointsRecords',
+      joinColumn: {
+        name: 'activity_id',
+        referencedColumnName: 'id',
+      },
+    },
     member: {
       target: 'Members',
       type: 'many-to-one',

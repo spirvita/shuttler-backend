@@ -1,7 +1,7 @@
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Activity');
 const appError = require('../utils/appError');
-const { isValidUUID } = require('../utils/validUtils');
+const { isValidUUID, isNumber } = require('../utils/validUtils');
 const { In, Not } = require('typeorm');
 
 const activityController = {
@@ -461,6 +461,185 @@ const activityController = {
     } catch (error) {
       logger.error('取得活動資料錯誤:', error);
       next(error);
+    }
+  },
+  async registerActivity(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { id } = req.user;
+      const { activityId, participantCount } = req.body;
+
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, '活動ID未填寫正確'));
+      }
+      if (!isNumber(participantCount) || participantCount <= 0) {
+        return next(appError(400, '報名人數未填寫正確'));
+      }
+
+      const membersRepo = queryRunner.manager.getRepository('Members');
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
+      const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
+
+      const member = await membersRepo.findOne({
+        where: { id },
+      });
+      if (!member) {
+        return next(appError(404, '會員不存在'));
+      }
+
+      const activity = await activitiesRepo.findOne({
+        where: {
+          id: activityId,
+          status: 'published',
+        },
+      });
+      if (!activity) {
+        return next(appError(404, '活動不存在'));
+      }
+
+      if (new Date(activity.start_time) <= new Date()) {
+        return next(appError(400, '活動已結束'));
+      }
+
+      if (activity.booked_count + participantCount > activity.participant_count) {
+        return next(
+          appError(
+            400,
+            `活動名額不足，剩餘 ${activity.participant_count - activity.booked_count} 人`,
+          ),
+        );
+      }
+
+      const totalCost = activity.points * participantCount;
+      if (member.points < totalCost) {
+        return next(appError(400, '報名失敗，活動點數不足'));
+      }
+
+      const existingRegistration = await activitiesRegisterRepo.findOne({
+        where: {
+          member: { id: member.id },
+          activity: { id: activityId },
+        },
+      });
+      if (existingRegistration) {
+        return next(appError(409, '你已經報名此活動'));
+      }
+
+      const newRegistration = activitiesRegisterRepo.create({
+        member: { id: member.id },
+        activity: { id: activityId },
+        status: 'registered',
+        participant_count: participantCount,
+      });
+      await activitiesRegisterRepo.save(newRegistration);
+
+      member.points -= totalCost;
+      await membersRepo.save(member);
+
+      activity.booked_count += participantCount;
+      await activitiesRepo.save(activity);
+
+      await pointsRecordRepo.save({
+        member: { id: member.id },
+        activity: { id: activity.id },
+        points_change: -totalCost,
+        recordType: 'applyAct',
+      });
+
+      await queryRunner.commitTransaction();
+
+      res.status(201).json({
+        message: '報名成功',
+        registrationId: newRegistration.id,
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('報名活動錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  },
+  async cancelActivity(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { id } = req.user;
+      const { activityId } = req.params;
+
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, '活動ID未填寫正確'));
+      }
+
+      const membersRepo = queryRunner.manager.getRepository('Members');
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
+      const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
+
+      const member = await membersRepo.findOne({
+        where: { id },
+      });
+      if (!member) {
+        return next(appError(404, '會員不存在'));
+      }
+
+      const activity = await activitiesRepo.findOne({
+        where: { id: activityId },
+      });
+      if (!activity) {
+        return next(appError(404, '活動不存在'));
+      }
+
+      if (new Date(activity.start_time) <= new Date()) {
+        return next(appError(400, '活動已結束，無法取消報名'));
+      }
+
+      const registration = await activitiesRegisterRepo.findOne({
+        where: {
+          member: { id: member.id },
+          activity: { id: activityId },
+        },
+      });
+      if (!registration) {
+        return next(appError(404, '你尚未報名此活動'));
+      }
+
+      if (registration.status === 'cancelled') {
+        return next(appError(409, '你已經取消報名此活動'));
+      }
+
+      registration.status = 'cancelled';
+      await activitiesRegisterRepo.save(registration);
+
+      member.points += activity.points * registration.participant_count;
+      await membersRepo.save(member);
+
+      activity.booked_count -= registration.participant_count;
+      await activitiesRepo.save(activity);
+
+      await pointsRecordRepo.save({
+        member: { id: member.id },
+        activity: { id: activity.id },
+        points_change: activity.points * registration.participant_count,
+        recordType: 'cancelAct',
+      });
+      await queryRunner.commitTransaction();
+      res.status(200).json({
+        message: '取消報名成功',
+        registrationId: registration.id,
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('取消報名活動錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
     }
   },
 };
