@@ -1,8 +1,14 @@
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Activity');
 const appError = require('../utils/appError');
-const { isValidUUID, isNumber } = require('../utils/validUtils');
-const { In, Not } = require('typeorm');
+const {
+  isValidUUID,
+  isNumber,
+  isValidString,
+  isValidDate,
+  isValidTime,
+} = require('../utils/validUtils');
+const { In, Not, MoreThan } = require('typeorm');
 
 const activityController = {
   async createActivity(req, res, next) {
@@ -18,6 +24,7 @@ const activityController = {
       const {
         name,
         pictures,
+        date,
         startTime,
         endTime,
         participantCount,
@@ -31,34 +38,100 @@ const activityController = {
         venueName,
         address,
         venueFacilities,
+        organizer,
         contactName,
         contactPhone,
         contactLine,
         status,
       } = req.body;
-      if (
-        !name ||
-        !startTime ||
-        !endTime ||
-        !participantCount ||
-        !rentalLot ||
-        !ballType ||
-        !points ||
-        !level ||
-        !brief ||
-        !city ||
-        !district ||
-        !venueName ||
-        !address ||
-        !venueFacilities ||
-        !contactName ||
-        !contactPhone ||
-        !contactLine ||
-        !status
-      ) {
-        return next(appError(400, '欄位未填寫正確'));
+      if (!isValidString(name)) {
+        return next(appError(400, '活動名稱未填寫正確'));
       }
-
+      if (pictures && !Array.isArray(pictures)) {
+        return next(appError(400, '圖片未填寫正確'));
+      }
+      if (pictures && pictures.length > 5) {
+        return next(appError(400, '圖片數量不能超過5張'));
+      }
+      if (!isValidDate(date)) {
+        return next(appError(400, '活動日期未填寫正確'));
+      }
+      if (!isValidTime(startTime)) {
+        return next(appError(400, '活動開始時間未填寫正確'));
+      }
+      if (!isValidTime(endTime)) {
+        return next(appError(400, '活動結束時間未填寫正確'));
+      }
+      if (!isNumber(participantCount) || participantCount <= 0) {
+        return next(appError(400, '人數未填寫正確'));
+      }
+      if (!isNumber(rentalLot) || rentalLot <= 0) {
+        return next(appError(400, '租用場地數量未填寫正確'));
+      }
+      if (!isValidString(ballType)) {
+        return next(appError(400, '球類未填寫正確'));
+      }
+      if (!isNumber(points) || points < 0) {
+        return next(appError(400, '點數未填寫正確'));
+      }
+      if (!Array.isArray(level) || level.length < 1 || level.length > 2 || !level.every(isNumber)) {
+        return next(appError(400, '程度未填寫正確'));
+      }
+      if (brief && !isValidString(brief)) {
+        return next(appError(400, '簡介未填寫正確'));
+      }
+      if (!isValidString(city)) {
+        return next(appError(400, '縣市未填寫正確'));
+      }
+      if (!isValidString(district)) {
+        return next(appError(400, '區域未填寫正確'));
+      }
+      if (!isValidString(venueName)) {
+        return next(appError(400, '場地名稱未填寫正確'));
+      }
+      if (!isValidString(address)) {
+        return next(appError(400, '地址未填寫正確'));
+      }
+      if (
+        !Array.isArray(venueFacilities) ||
+        venueFacilities.length === 0 ||
+        !venueFacilities.every(isValidString)
+      ) {
+        return next(appError(400, '場地設施未填寫正確'));
+      }
+      if (!isValidString(organizer)) {
+        return next(appError(400, '主辦單位未填寫正確'));
+      }
+      if (!isValidString(contactName)) {
+        return next(appError(400, '聯絡人姓名未填寫正確'));
+      }
+      if (!isValidString(contactPhone)) {
+        return next(appError(400, '聯絡人電話未填寫正確'));
+      }
+      if (contactLine && !isValidString(contactLine)) {
+        return next(appError(400, '聯絡人Line未填寫正確'));
+      }
+      if (!['draft', 'published'].includes(status)) {
+        return next(appError(400, '狀態未填寫正確'));
+      }
+      if (status === 'published' && new Date(`${date}T${startTime}`) <= new Date()) {
+        return next(appError(400, '發佈活動時，開始時間必須在現在時間之後'));
+      }
+      if (
+        status === 'published' &&
+        new Date(`${date}T${endTime}`) <= new Date(`${date}T${startTime}`)
+      ) {
+        return next(appError(400, '發佈活動時，結束時間必須在開始時間之後'));
+      }
+      if (status === 'draft' && new Date(`${date}T${startTime}`) <= new Date()) {
+        return next(appError(400, '儲存活動時，開始時間必須在現在時間之後'));
+      }
+      if (
+        status === 'draft' &&
+        new Date(`${date}T${endTime}`) <= new Date(`${date}T${startTime}`)
+      ) {
+        return next(appError(400, '儲存活動時，結束時間必須在開始時間之後'));
+      }
       const cityData = await queryRunner.manager.getRepository('Cities').findOne({
         where: { city, district },
       });
@@ -70,8 +143,8 @@ const activityController = {
       const newActivity = activitiesRepo.create({
         member_id: id,
         name,
-        start_time: new Date(startTime),
-        end_time: new Date(endTime),
+        start_time: new Date(`${date}T${startTime}`),
+        end_time: new Date(`${date}T${endTime}`),
         participant_count: participantCount,
         rental_lot: rentalLot,
         ball_type: ballType,
@@ -80,6 +153,7 @@ const activityController = {
         zip_code: cityData.zip_code,
         address,
         venue_name: venueName,
+        organizer,
         contact_name: contactName,
         contact_phone: contactPhone,
         contact_line: contactLine,
@@ -120,16 +194,10 @@ const activityController = {
 
       await queryRunner.commitTransaction();
 
-      if (status === 'published') {
-        res.status(201).json({
-          message: '發佈成功',
-          activityId: newActivity.id,
-        });
-      } else {
-        res.status(201).json({
-          message: '儲存成功',
-        });
-      }
+      res.status(201).json({
+        message: status === 'published' ? '發佈成功' : '儲存成功',
+        activityId: newActivity.id,
+      });
     } catch (error) {
       await queryRunner.rollbackTransaction();
       logger.error('新建活動錯誤:', error);
@@ -155,11 +223,13 @@ const activityController = {
       const cityRepo = dataSource.getRepository('Cities');
 
       const takeLimit = 6;
+      const now = new Date();
 
       // Step 1: 先查詢會員地區的活動
       const primaryActivities = await activitiesRepo.find({
         where: {
-          is_published: true,
+          status: 'published',
+          start_time: MoreThan(now),
           ...(member?.region?.length > 0 ? { zip_code: In(member.region) } : {}),
         },
         order: {
@@ -177,7 +247,8 @@ const activityController = {
 
         fallbackActivities = await activitiesRepo.find({
           where: {
-            is_published: true,
+            status: 'published',
+            start_time: MoreThan(now),
             id: Not(In(excludedIds)),
           },
           order: {
@@ -266,6 +337,7 @@ const activityController = {
       const activityPicturesRepo = dataSource.getRepository('ActivityPictures');
       const cityRepo = dataSource.getRepository('Cities');
       const takeLimit = 6;
+      const now = new Date();
 
       // 會員地區的熱門活動（排除滿人，參與比例高>低排序）
       const primaryQuery = activitiesRepo
@@ -279,8 +351,9 @@ const activityController = {
           'a.points',
           '(a.booked_count::float / NULLIF(a.participant_count, 0)) AS participation_ratio',
         ])
-        .where('a.is_published = true')
+        .where('a.status = :status', { status: 'published' })
         .andWhere('a.booked_count < a.participant_count')
+        .andWhere('a.start_time > :now', { now })
         .orderBy('participation_ratio', 'DESC')
         .addOrderBy('a.start_time', 'ASC')
         .take(takeLimit);
@@ -309,8 +382,9 @@ const activityController = {
             'a.points',
             '(a.booked_count::float / NULLIF(a.participant_count, 0)) AS participation_ratio',
           ])
-          .where('a.is_published = true')
+          .where('a.status = :status', { status: 'published' })
           .andWhere('a.booked_count < a.participant_count')
+          .andWhere('a.start_time > :now', { now })
           .andWhere('a.id NOT IN (:...excludedIds)', { excludedIds })
           .orderBy('participation_ratio', 'DESC')
           .addOrderBy('a.start_time', 'ASC')

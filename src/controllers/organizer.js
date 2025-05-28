@@ -1,7 +1,7 @@
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Organizer');
 const appError = require('../utils/appError');
-const { isValidUUID } = require('../utils/validUtils');
+const { isValidUUID, isNumber, isValidString } = require('../utils/validUtils');
 const { In } = require('typeorm');
 
 const organizerController = {
@@ -13,9 +13,6 @@ const organizerController = {
     try {
       const memberId = req.user.id;
       const { activityId } = req.params;
-      if (!isValidUUID(activityId)) {
-        return next(appError(400, 'ID未填寫正確'));
-      }
       const {
         pictures,
         participantCount,
@@ -29,19 +26,44 @@ const organizerController = {
         contactPhone,
         contactLine,
       } = req.body;
-      if (
-        !participantCount ||
-        !rentalLot ||
-        !ballType ||
-        !level ||
-        !brief ||
-        !venueName ||
-        !venueFacilities ||
-        !contactName ||
-        !contactPhone ||
-        !contactLine
-      ) {
-        return next(appError(400, '欄位未填寫正確'));
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+      if (!Array.isArray(pictures)) {
+        return next(appError(400, '圖片未填寫正確'));
+      }
+      if (pictures.length > 5) {
+        return next(appError(400, '圖片數量不能超過5張'));
+      }
+      if (!isNumber(participantCount)) {
+        return next(appError(400, '人數未填寫正確'));
+      }
+      if (!isNumber(rentalLot) || rentalLot <= 0) {
+        return next(appError(400, '租用場地數量未填寫正確'));
+      }
+      if (!isValidString(ballType)) {
+        return next(appError(400, '球類未填寫正確'));
+      }
+      if (!Array.isArray(level) || level.length < 1 || level.length > 2 || !level.every(isNumber)) {
+        return next(appError(400, '程度未填寫正確'));
+      }
+      if (brief && !isValidString(brief)) {
+        return next(appError(400, '簡介未填寫正確'));
+      }
+      if (!isValidString(venueName)) {
+        return next(appError(400, '場地名稱未填寫正確'));
+      }
+      if (!Array.isArray(venueFacilities) || venueFacilities.length === 0) {
+        return next(appError(400, '場地設施未填寫正確'));
+      }
+      if (!isValidString(contactName)) {
+        return next(appError(400, '聯絡人姓名未填寫正確'));
+      }
+      if (!isValidString(contactPhone)) {
+        return next(appError(400, '聯絡人電話未填寫正確'));
+      }
+      if (contactLine && !isValidString(contactLine)) {
+        return next(appError(400, '聯絡人Line未填寫正確'));
       }
 
       const activity = await queryRunner.manager.getRepository('Activities').findOne({

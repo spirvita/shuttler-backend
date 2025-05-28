@@ -20,6 +20,11 @@ module.exports = new EntitySchema({
       length: 50,
       nullable: false,
     },
+    organizer: {
+      type: 'varchar',
+      length: 50,
+      nullable: false,
+    },
     start_time: {
       type: 'timestamptz',
       nullable: false,
@@ -62,7 +67,7 @@ module.exports = new EntitySchema({
     },
     brief: {
       type: 'text',
-      nullable: false,
+      nullable: true,
     },
     contact_name: {
       type: 'varchar',
@@ -77,7 +82,7 @@ module.exports = new EntitySchema({
     contact_line: {
       type: 'varchar',
       length: 50,
-      nullable: false,
+      nullable: true,
     },
     points: {
       type: 'integer',

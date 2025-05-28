@@ -25,6 +25,21 @@ const isValidUUID = (value) => {
   return typeof value === 'string' && uuidPattern.test(value);
 };
 
+const isValidDate = (value) => {
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (typeof value !== 'string' || !datePattern.test(value)) return false;
+  const date = new Date(value);
+  return !isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+
+const isValidTime = (value) => {
+  if (typeof value !== 'string') return false;
+  const timePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  if (!timePattern.test(value)) return false;
+  const [hour, minute] = value.split(':').map(Number);
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+};
+
 module.exports = {
   isValidString,
   isNumber,
@@ -32,4 +47,6 @@ module.exports = {
   isValidImageUrl,
   isValidUUID,
   isValidEmail,
+  isValidDate,
+  isValidTime,
 };
