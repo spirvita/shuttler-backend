@@ -36,27 +36,8 @@ module.exports = class UpdateForPointsFlow1748094130094 {
             ADD "participant_count" integer NOT NULL
         `);
     await queryRunner.query(`
-            ALTER TYPE "public"."ACTIVITIES_status_enum"
-            RENAME TO "ACTIVITIES_status_enum_old"
-        `);
-    await queryRunner.query(`
-            CREATE TYPE "public"."ACTIVITIES_status_enum" AS ENUM('draft', 'published', 'suspended', 'ended')
-        `);
-    await queryRunner.query(`
             ALTER TABLE "ACTIVITIES"
             ALTER COLUMN "status" DROP DEFAULT
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "ACTIVITIES"
-            ALTER COLUMN "status" TYPE "public"."ACTIVITIES_status_enum" USING "status"::"text"::"public"."ACTIVITIES_status_enum"
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "ACTIVITIES"
-            ALTER COLUMN "status"
-            SET DEFAULT 'draft'
-        `);
-    await queryRunner.query(`
-            DROP TYPE "public"."ACTIVITIES_status_enum_old"
         `);
     await queryRunner.query(`
             ALTER TABLE "POINTS_RECORD" DROP COLUMN "created_at"
@@ -174,27 +155,13 @@ module.exports = class UpdateForPointsFlow1748094130094 {
             ADD "created_at" TIMESTAMP NOT NULL DEFAULT now()
         `);
     await queryRunner.query(`
-            CREATE TYPE "public"."ACTIVITIES_status_enum_old" AS ENUM('draft', 'published', 'cancelled')
-        `);
-    await queryRunner.query(`
             ALTER TABLE "ACTIVITIES"
             ALTER COLUMN "status" DROP DEFAULT
         `);
     await queryRunner.query(`
             ALTER TABLE "ACTIVITIES"
-            ALTER COLUMN "status" TYPE "public"."ACTIVITIES_status_enum_old" USING "status"::"text"::"public"."ACTIVITIES_status_enum_old"
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "ACTIVITIES"
             ALTER COLUMN "status"
             SET DEFAULT 'draft'
-        `);
-    await queryRunner.query(`
-            DROP TYPE "public"."ACTIVITIES_status_enum"
-        `);
-    await queryRunner.query(`
-            ALTER TYPE "public"."ACTIVITIES_status_enum_old"
-            RENAME TO "ACTIVITIES_status_enum"
         `);
     await queryRunner.query(`
             ALTER TABLE "ACTIVITIES_REGISTER" DROP COLUMN "participant_count"

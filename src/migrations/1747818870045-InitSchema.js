@@ -28,6 +28,9 @@ module.exports = class InitSchema1747818870045 {
                 CONSTRAINT "PK_0f51565dcc6fabd22fe971dbc3f" PRIMARY KEY ("id")
             )
         `);
+    await queryRunner.query(
+      `CREATE TYPE "activity_status" AS ENUM('draft', 'published', 'suspended')`,
+    );
     await queryRunner.query(`
             CREATE TABLE "ACTIVITIES" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -48,6 +51,7 @@ module.exports = class InitSchema1747818870045 {
                 "contact_line" character varying(50) NOT NULL,
                 "points" integer NOT NULL,
                 "is_published" boolean NOT NULL DEFAULT false,
+                "status" activity_status NOT NULL DEFAULT 'draft',
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_4ea732a34ebe9cc5d309c475907" PRIMARY KEY ("id")
