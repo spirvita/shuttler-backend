@@ -5,6 +5,161 @@ const { isValidUUID, isNumber, isValidString } = require('../utils/validUtils');
 const { In } = require('typeorm');
 
 const organizerController = {
+  async getActivities(req, res, next) {
+    try {
+      const memberId = req.user.id;
+      const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
+      const activitiesRepo = dataSource.getRepository('Activities');
+      const cityRepo = dataSource.getRepository('Cities');
+      const activities = await activitiesRepo.find({
+        where: { member_id: memberId },
+        relations: ['member'],
+      });
+
+      if (!activities || activities.length === 0) {
+        return res.status(200).json({
+          message: '目前無任何活動',
+          data: [],
+        });
+      }
+
+      const now = new Date();
+      const data = [];
+
+      for (const activity of activities) {
+        const start = new Date(activity.start_time);
+        const end = new Date(activity.end_time);
+        const date = start.toISOString().split('T')[0];
+        const startTime = start.toISOString().split('T')[1].slice(0, 5);
+        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+
+        const cityData = await cityRepo.findOne({
+          where: { zip_code: activity.zip_code },
+        });
+
+        const levels = await activityLevelsRepo.find({
+          where: { activity: { id: activity.id } },
+          relations: ['level'],
+        });
+        const level = levels.map((al) => al.level.name);
+
+        let activityStatus;
+        if (activity.status === 'draft') {
+          activityStatus = 'draft';
+        } else if (activity.status === 'cancelled') {
+          activityStatus = 'cancelled';
+        } else if (activity.status === 'published') {
+          activityStatus = end < now ? 'ended' : 'published';
+        }
+
+        data.push({
+          activityId: activity.id,
+          name: activity.name,
+          date,
+          startTime,
+          endTime,
+          venueName: activity.venue_name,
+          city: cityData.city,
+          district: cityData.district,
+          address: activity.address,
+          level,
+          participantCount: activity.participant_count,
+          bookedCount: activity.booked_count,
+          contactAvatar: activity.member.photo,
+          contactName: activity.contact_name,
+          contactPhone: activity.contact_phone,
+          contactLine: activity.contact_line,
+          points: activity.points,
+          status: activityStatus,
+        });
+      }
+
+      res.status(200).json({
+        message: '成功',
+        data,
+      });
+    } catch (error) {
+      logger.error('取得活動資料錯誤:', error);
+      next(error);
+    }
+  },
+  async getActivity(req, res, next) {
+    try {
+      const { memberId } = req.user;
+      const { activityId } = req.params;
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+
+      const pointsRecordRepo = dataSource.getRepository('PointsRecord');
+      const activitiesRepo = dataSource.getRepository('Activities');
+      const activitiesRegisterRepo = dataSource.getRepository('ActivitiesRegister');
+      const activity = await activitiesRepo.findOne({
+        where: {
+          id: activityId,
+          member_id: memberId,
+        },
+      });
+      if (!activity) {
+        return next(appError(404, '無此活動或無權限查看'));
+      }
+      const activitiesRegister = await activitiesRegisterRepo.find({
+        where: { activity: { id: activityId } },
+        relations: ['member', 'activity'],
+      });
+      if (!activitiesRegister || activitiesRegister.length === 0) {
+        return next(appError(404, '查無活動報名資料'));
+      }
+
+      const statusMap = {
+        cancelled: '已取消',
+        registered: '已報名',
+        suspended: '已停辦',
+      };
+
+      const data = await Promise.all(
+        activitiesRegister.map(async (ar) => {
+          const member = ar.member;
+          const activity = ar.activity;
+
+          let refundPoints = null;
+
+          if (ar.status === 'cancelled' || ar.status === 'suspended') {
+            const recordType = ar.status === 'cancelled' ? 'cancelAct' : 'suspendAct';
+            const pointsRecord = await pointsRecordRepo.findOne({
+              where: {
+                activity_id: activityId,
+                member_id: member.id,
+                recordType,
+              },
+            });
+            refundPoints = pointsRecord ? pointsRecord.points_change : 0;
+          }
+
+          return {
+            memberId: member.id,
+            name: member.name,
+            email: member.email,
+            registrationDate: ar.created_at,
+            cancellationDate:
+              ar.status === 'cancelled' || ar.status === 'suspended' ? ar.updated_at : null,
+            registrationCount: ar.participant_count,
+            registrationPoints: ar.participant_count * activity.points,
+            refundPoints,
+            status: statusMap[ar.status] || ar.status,
+          };
+        }),
+      );
+
+      res.status(200).json({
+        message: '取得活動資料成功',
+        data,
+      });
+    } catch (error) {
+      logger.error('取得活動資料錯誤:', error);
+      next(error);
+    }
+  },
   async updateActivity(req, res, next) {
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -140,6 +295,77 @@ const organizerController = {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       logger.error('更新活動資料錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  },
+  async suspendActivity(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const memberId = req.user.id;
+      const { activityId } = req.params;
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+
+      const memberRepo = queryRunner.manager.getRepository('Members');
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
+      const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
+
+      const activity = await activitiesRepo.findOne({
+        where: { id: activityId, member_id: memberId },
+      });
+      if (!activity) {
+        return next(appError(404, '無此活動或無權限查看'));
+      }
+      if (activity.status === 'suspended') {
+        return next(appError(400, '活動已經是停辦狀態'));
+      }
+
+      await activitiesRepo.update({ id: activityId }, { status: 'suspended' });
+      const activitiesRegisters = await activitiesRegisterRepo.find({
+        where: { activity: { id: activityId } },
+        relations: ['member'],
+      });
+
+      let totalRefundCount = 0;
+
+      for (const register of activitiesRegisters) {
+        if (register.status === 'registered') {
+          register.status = 'suspended';
+          await activitiesRegisterRepo.save(register);
+
+          const refundPoints = register.participant_count * activity.points;
+          totalRefundCount += register.participant_count;
+          await pointsRecordRepo.save({
+            activity_id: activityId,
+            member_id: register.member.id,
+            points_change: refundPoints,
+            recordType: 'suspendAct',
+          });
+          register.member.points += refundPoints;
+          await memberRepo.save(register.member);
+        }
+      }
+
+      await activitiesRepo.update(
+        { id: activityId },
+        { booked_count: activity.booked_count - totalRefundCount },
+      );
+
+      await queryRunner.commitTransaction();
+
+      res.status(200).json({
+        message: '停辦成功',
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('停辦活動錯誤:', error);
       next(error);
     } finally {
       await queryRunner.release();

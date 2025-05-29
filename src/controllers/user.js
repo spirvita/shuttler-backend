@@ -4,6 +4,82 @@ const { isValidString, isValidEmail } = require('../utils/validUtils');
 const appError = require('../utils/appError');
 
 const userController = {
+  getMemberActivities: async (req, res, next) => {
+    try {
+      const { id } = req.user;
+      const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
+      const cityRepo = dataSource.getRepository('Cities');
+      const activitiesRegisterRepo = dataSource.getRepository('ActivitiesRegister');
+      const activitiesRegisters = await activitiesRegisterRepo.find({
+        where: {
+          member_id: id,
+        },
+        relations: ['member', 'activity'],
+      });
+      if (!activitiesRegisters || activitiesRegisters.length === 0) {
+        return next(appError(404, '查無活動資料'));
+      }
+
+      const data = [];
+      for (const activity of activitiesRegisters) {
+        const start = new Date(activity.activity.start_time);
+        const end = new Date(activity.activity.end_time);
+        const date = start.toISOString().split('T')[0];
+        const startTime = start.toISOString().split('T')[1].slice(0, 5);
+        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+
+        const cityData = await cityRepo.findOne({
+          where: {
+            zip_code: activity.activity.zip_code,
+          },
+        });
+
+        const levels = await activityLevelsRepo.find({
+          where: { activity: { id: activity.activity.id } },
+          relations: ['level'],
+        });
+        const level = levels.map((al) => al.level.name);
+
+        let activityStatus;
+        if (activity.activity.status === 'suspended') {
+          activityStatus = 'suspended';
+        } else if (activity.activity.status === 'cancelled') {
+          activityStatus = 'cancelled';
+        } else if (activity.activity.status === 'published') {
+          const now = new Date();
+          activityStatus = end < now ? 'ended' : 'registered';
+        }
+
+        data.push({
+          activityId: activity.activity.id,
+          name: activity.activity.name,
+          date,
+          startTime,
+          endTime,
+          venueName: activity.activity.venue_name,
+          city: cityData.city,
+          district: cityData.district,
+          address: activity.activity.address,
+          level,
+          participantCount: activity.activity.participant_count,
+          bookedCount: activity.activity.booked_count,
+          contactAvatar: activity.member.photo,
+          contactName: activity.activity.contact_name,
+          contactPhone: activity.activity.contact_phone,
+          contactLine: activity.activity.contact_line,
+          points: activity.activity.points,
+          status: activityStatus,
+        });
+      }
+      res.status(200).json({
+        message: '成功',
+        data,
+      });
+    } catch (error) {
+      logger.error('取得使用者活動錯誤:', error);
+      next(error);
+    }
+  },
   getMemberProfile: async (req, res, next) => {
     try {
       const { id } = req.user;
