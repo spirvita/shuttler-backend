@@ -262,7 +262,7 @@ const activityController = {
       const activities = [...primaryActivities, ...fallbackActivities];
 
       if (!activities || activities.length === 0) {
-        return next(appError(404, '查無活動資料'));
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];
@@ -397,7 +397,7 @@ const activityController = {
       const activities = [...primaryRawActivities, ...fallbackRawActivities];
 
       if (!activities || activities.length === 0) {
-        return next(appError(404, '查無活動資料'));
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];

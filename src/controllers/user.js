@@ -17,7 +17,7 @@ const userController = {
         relations: ['member', 'activity'],
       });
       if (!activitiesRegisters || activitiesRegisters.length === 0) {
-        return next(appError(404, '查無活動資料'));
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];
@@ -221,11 +221,8 @@ const userController = {
         relations: ['member', 'activity'],
       });
 
-      if (!favorites) {
-        res.status(200).json({
-          status: 'success',
-          data: [],
-        });
+      if (!favorites || favorites.length === 0) {
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];

@@ -8,6 +8,8 @@ const organizerController = {
   async getActivities(req, res, next) {
     try {
       const memberId = req.user.id;
+      const activityFacilitiesRepo = dataSource.getRepository('ActivityFacilities');
+      const activityPicturesRepo = dataSource.getRepository('ActivityPictures');
       const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
       const activitiesRepo = dataSource.getRepository('Activities');
       const cityRepo = dataSource.getRepository('Cities');
@@ -17,10 +19,7 @@ const organizerController = {
       });
 
       if (!activities || activities.length === 0) {
-        return res.status(200).json({
-          message: '目前無任何活動',
-          data: [],
-        });
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const now = new Date();
@@ -36,6 +35,17 @@ const organizerController = {
         const cityData = await cityRepo.findOne({
           where: { zip_code: activity.zip_code },
         });
+
+        const activityFacilities = await activityFacilitiesRepo.find({
+          where: { activity: { id: activity.id } },
+          relations: ['facility'],
+        });
+        const venueFacilities = activityFacilities.map((af) => af.facility.name);
+
+        const pictures = await activityPicturesRepo.find({
+          where: { activity: { id: activity.id } },
+        });
+        const eventPictures = pictures.map((p) => p.url);
 
         const levels = await activityLevelsRepo.find({
           where: { activity: { id: activity.id } },
@@ -55,6 +65,8 @@ const organizerController = {
         data.push({
           activityId: activity.id,
           name: activity.name,
+          organizer: activity.organizer,
+          pictures: eventPictures,
           date,
           startTime,
           endTime,
@@ -62,9 +74,13 @@ const organizerController = {
           city: cityData.city,
           district: cityData.district,
           address: activity.address,
+          venueFacilities,
+          ballType: activity.ball_type,
           level,
           participantCount: activity.participant_count,
           bookedCount: activity.booked_count,
+          rentalLot: activity.rental_lot,
+          brief: activity.brief,
           contactAvatar: activity.member.photo,
           contactName: activity.contact_name,
           contactPhone: activity.contact_phone,

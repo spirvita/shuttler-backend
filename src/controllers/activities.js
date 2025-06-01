@@ -6,13 +6,19 @@ const appError = require('../utils/appError');
 const activitiesController = {
   async getActivities(req, res, next) {
     try {
-      const { search, zipCode, spotsLeft, level, date, timeSlot, points } = req.query;
+      const { search, zipCode, city, spotsLeft, level, date, timeSlot, points } = req.query;
 
       if (search && !isValidString(search)) {
         return next(appError(400, '搜尋關鍵字未填寫正確'));
       }
+      if (zipCode && city) {
+        return next(appError(400, '縣市區與縣市僅能擇一使用'));
+      }
       if (zipCode && !isValidString(zipCode)) {
         return next(appError(400, '縣市區未填寫正確'));
+      }
+      if (city && !isValidString(city)) {
+        return next(appError(400, '縣市未填寫正確'));
       }
       if (
         spotsLeft &&
@@ -56,6 +62,7 @@ const activitiesController = {
 
       const activitiesRepo = dataSource.getRepository('Activities');
       const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
+      const citiesRepo = dataSource.getRepository('Cities');
 
       let activityIdsWithLevel = null;
       if (level) {
@@ -80,6 +87,20 @@ const activitiesController = {
 
       if (zipCode) {
         activitiesQuery.andWhere('activity.zip_code = :zipCode', { zipCode });
+      } else if (city) {
+        const cityZipCodes = await citiesRepo
+          .createQueryBuilder('c')
+          .where('c.city = :city', { city })
+          .select('c.zip_code', 'zipCode')
+          .getRawMany();
+
+        const zipCodes = cityZipCodes.map((row) => row.zipCode);
+
+        if (zipCodes.length === 0) {
+          return res.status(400).json({ message: '無效的縣市' });
+        }
+
+        activitiesQuery.andWhere('activity.zip_code IN (:...zipCodes)', { zipCodes });
       }
       if (spotsLeft) {
         activitiesQuery.andWhere(
@@ -108,7 +129,7 @@ const activitiesController = {
       const activities = await activitiesQuery.getMany();
 
       if (!activities || activities.length === 0) {
-        return res.status(200).json({ message: '成功', data: [] });
+        return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];
@@ -159,6 +180,7 @@ const activitiesController = {
 
       const id = req.user ? req.user.id : null;
       let isFavorite = false;
+      let isRegistered = false;
       if (id) {
         const memberFavoriteActivitiesRepo = dataSource.getRepository('MemberFavoriteActivities');
         const favorite = await memberFavoriteActivitiesRepo.findOne({
@@ -167,9 +189,20 @@ const activitiesController = {
             activity: { id: activityId },
           },
         });
-
         if (favorite) {
           isFavorite = true;
+        }
+
+        const activitiesRegisterRepo = dataSource.getRepository('ActivitiesRegister');
+        const registration = await activitiesRegisterRepo.findOne({
+          where: {
+            member_id: id,
+            activity_id: activityId,
+            status: 'registered',
+          },
+        });
+        if (registration) {
+          isRegistered = true;
         }
       }
 
@@ -177,17 +210,32 @@ const activitiesController = {
       const activities = await activitiesRepo.findOne({
         where: {
           id: activityId,
+          status: 'published',
         },
         relations: ['member'],
       });
       if (!activities) {
         return next(appError(404, '查無活動資料'));
       }
+
+      const now = new Date();
       const start = new Date(activities.start_time);
       const end = new Date(activities.end_time);
       const date = start.toISOString().split('T')[0];
       const startTime = start.toISOString().split('T')[1].slice(0, 5);
       const endTime = end.toISOString().split('T')[1].slice(0, 5);
+
+      let activityStatus;
+
+      if (end < now) {
+        activityStatus = 'ended';
+      } else if (activities.booked_count >= activities.participant_count) {
+        activityStatus = 'full';
+      } else if (isRegistered) {
+        activityStatus = 'registered';
+      } else {
+        activityStatus = 'published';
+      }
 
       const cityRepo = dataSource.getRepository('Cities');
       const cityData = await cityRepo.findOne({
@@ -247,6 +295,7 @@ const activitiesController = {
           contactLine: activities.contact_line,
           points: activities.points,
           isFavorite,
+          status: activityStatus,
         },
       });
     } catch (error) {
