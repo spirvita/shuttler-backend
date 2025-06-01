@@ -99,8 +99,8 @@ const userController = {
           preferredLocation: findUser.region,
           registerDate: new Date(`${findUser.created_at}`).toISOString().split('T')[0],
           level: findUser.level?.level || null,
-          // totalPoint: findUser.totalPoint, // TODO: 這邊要從點數table查詢
-          attendCount: 0, // TODO: 這邊要從報名活動的資料庫查詢
+          totalPoint: findUser.points || 0,
+          attendCount: findUser.attendCount || 0, // TODO: 這邊要從報名活動的資料庫查詢
         },
       });
     } catch (error) {

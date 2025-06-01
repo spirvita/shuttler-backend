@@ -9,9 +9,9 @@
 
 const { DEFAULT_CITIES, DEFAULT_FACILITIES } = require('../seeds/seeding-data');
 
-module.exports = class FixSeedingData1749020727347 {
+module.exports = class FixSeedingData1748520727347 {
   constructor() {
-    this.name = 'FixSeedingData1749020727347';
+    this.name = 'FixSeedingData1748520727347';
   }
 
   async up(queryRunner) {
