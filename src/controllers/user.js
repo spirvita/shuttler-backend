@@ -2,6 +2,7 @@ const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Member');
 const { isValidString, isValidEmail } = require('../utils/validUtils');
 const appError = require('../utils/appError');
+const dayjs = require('../utils/dayjs');
 
 const userController = {
   getMemberActivities: async (req, res, next) => {
@@ -22,11 +23,11 @@ const userController = {
 
       const data = [];
       for (const activity of activitiesRegisters) {
-        const start = new Date(activity.activity.start_time);
-        const end = new Date(activity.activity.end_time);
-        const date = start.toISOString().split('T')[0];
-        const startTime = start.toISOString().split('T')[1].slice(0, 5);
-        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+        const start = dayjs(activity.activity.start_time).tz();
+        const end = dayjs(activity.activity.end_time).tz();
+        const date = start.format('YYYY-MM-DD');
+        const startTime = start.format('HH:mm');
+        const endTime = end.format('HH:mm');
 
         const cityData = await cityRepo.findOne({
           where: {
@@ -46,8 +47,8 @@ const userController = {
         } else if (activity.activity.status === 'cancelled') {
           activityStatus = 'cancelled';
         } else if (activity.activity.status === 'published') {
-          const now = new Date();
-          activityStatus = end < now ? 'ended' : 'registered';
+          const now = dayjs().tz();
+          activityStatus = end.isBefore(now) ? 'ended' : 'registered';
         }
 
         data.push({
@@ -97,7 +98,7 @@ const userController = {
           avatar: findUser.photo,
           email: findUser.email,
           preferredLocation: findUser.region,
-          registerDate: new Date(`${findUser.created_at}`).toISOString().split('T')[0],
+          registerDate: dayjs(findUser.created_at).tz().format('YYYY-MM-DD'),
           level: findUser.level?.level || null,
           totalPoint: findUser.points || 0,
           attendCount: findUser.attendCount || 0, // TODO: 這邊要從報名活動的資料庫查詢
@@ -228,11 +229,11 @@ const userController = {
       const data = [];
 
       for (const favorite of favorites) {
-        const start = new Date(favorite.activity.start_time);
-        const end = new Date(favorite.activity.end_time);
-        const date = start.toISOString().split('T')[0];
-        const startTime = start.toISOString().split('T')[1].slice(0, 5);
-        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+        const start = dayjs(favorite.activity.start_time).tz();
+        const end = dayjs(favorite.activity.end_time).tz();
+        const date = start.format('YYYY-MM-DD');
+        const startTime = start.format('HH:mm');
+        const endTime = end.format('HH:mm');
 
         const cityRepo = dataSource.getRepository('Cities');
         const cityData = await cityRepo.findOne({

@@ -35,21 +35,16 @@ module.exports = class ActivitiesSeeding1748420727345 {
     const levels = await levelsRepo.find();
 
     const defaultActivityLevels = [
-      { activity_id: activities[0].id, level_id: levels[0].id },
-      { activity_id: activities[0].id, level_id: levels[3].id },
-      { activity_id: activities[1].id, level_id: levels[2].id },
-      { activity_id: activities[2].id, level_id: levels[4].id },
-      { activity_id: activities[2].id, level_id: levels[5].id },
-      { activity_id: activities[3].id, level_id: levels[0].id },
-      { activity_id: activities[4].id, level_id: levels[2].id },
-      { activity_id: activities[5].id, level_id: levels[0].id },
-      { activity_id: activities[6].id, level_id: levels[0].id },
-      { activity_id: activities[7].id, level_id: levels[0].id },
-      { activity_id: activities[7].id, level_id: levels[1].id },
-      { activity_id: activities[8].id, level_id: levels[1].id },
-      { activity_id: activities[8].id, level_id: levels[2].id },
-      { activity_id: activities[9].id, level_id: levels[2].id },
-      { activity_id: activities[9].id, level_id: levels[3].id },
+      { activityIndex: 0, levelIndexes: [0, 3] },
+      { activityIndex: 1, levelIndexes: [2] },
+      { activityIndex: 2, levelIndexes: [4, 5] },
+      { activityIndex: 3, levelIndexes: [0] },
+      { activityIndex: 4, levelIndexes: [2] },
+      { activityIndex: 5, levelIndexes: [0] },
+      { activityIndex: 6, levelIndexes: [0] },
+      { activityIndex: 7, levelIndexes: [0, 1] },
+      { activityIndex: 8, levelIndexes: [1, 2] },
+      { activityIndex: 9, levelIndexes: [2, 3] },
     ];
 
     const activityLevelsData = [];

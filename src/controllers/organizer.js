@@ -3,6 +3,7 @@ const logger = require('../utils/logger')('Organizer');
 const appError = require('../utils/appError');
 const { isValidUUID, isNumber, isValidString } = require('../utils/validUtils');
 const { In } = require('typeorm');
+const dayjs = require('../utils/dayjs');
 
 const organizerController = {
   async getActivities(req, res, next) {
@@ -22,15 +23,15 @@ const organizerController = {
         return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
-      const now = new Date();
+      const now = dayjs().tz();
       const data = [];
 
       for (const activity of activities) {
-        const start = new Date(activity.start_time);
-        const end = new Date(activity.end_time);
-        const date = start.toISOString().split('T')[0];
-        const startTime = start.toISOString().split('T')[1].slice(0, 5);
-        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+        const start = dayjs(activity.start_time).tz();
+        const end = dayjs(activity.end_time).tz();
+        const date = start.format('YYYY-MM-DD');
+        const startTime = start.format('HH:mm');
+        const endTime = end.format('HH:mm');
 
         const cityData = await cityRepo.findOne({
           where: { zip_code: activity.zip_code },
@@ -59,7 +60,7 @@ const organizerController = {
         } else if (activity.status === 'cancelled') {
           activityStatus = 'cancelled';
         } else if (activity.status === 'published') {
-          activityStatus = end < now ? 'ended' : 'published';
+          activityStatus = end.isBefore(now) ? 'ended' : 'published';
         }
 
         data.push({
@@ -156,9 +157,11 @@ const organizerController = {
             memberId: member.id,
             name: member.name,
             email: member.email,
-            registrationDate: ar.created_at,
+            registrationDate: dayjs.tz(ar.created_at).format('YYYY-MM-DD HH:mm'),
             cancellationDate:
-              ar.status === 'cancelled' || ar.status === 'suspended' ? ar.updated_at : null,
+              ar.status === 'cancelled' || ar.status === 'suspended'
+                ? dayjs.tz(ar.updated_at).format('YYYY-MM-DD HH:mm')
+                : null,
             registrationCount: ar.participant_count,
             registrationPoints: ar.participant_count * activity.points,
             refundPoints,

@@ -149,6 +149,9 @@ module.exports = class InitSchema1747818870045 {
             ADD CONSTRAINT "FK_cb472bad6276614e2eddda403d1" FOREIGN KEY ("level_id") REFERENCES "LEVELS"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
+          ALTER TABLE "ACTIVITY_LEVELS" ADD CONSTRAINT "UQ_activity_level_unique" UNIQUE ("activity_id", "level_id");
+        `);
+    await queryRunner.query(`
             ALTER TABLE "MEMBER_FAVORITE_ACTIVITIES"
             ADD CONSTRAINT "FK_d362a5271fa466938311117c072" FOREIGN KEY ("member_id") REFERENCES "MEMBERS"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
@@ -170,6 +173,9 @@ module.exports = class InitSchema1747818870045 {
         `);
     await queryRunner.query(`
             ALTER TABLE "ACTIVITY_LEVELS" DROP CONSTRAINT "FK_61f9e8cc34ce5831aa4757a347d"
+        `);
+    await queryRunner.query(`
+          ALTER TABLE "ACTIVITY_LEVELS" DROP CONSTRAINT "UQ_activity_level_unique";
         `);
     await queryRunner.query(`
             ALTER TABLE "ACTIVITY_FACILITIES" DROP CONSTRAINT "FK_b6c58672bef84790c926ce8f4bc"

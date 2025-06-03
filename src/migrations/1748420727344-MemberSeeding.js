@@ -31,7 +31,7 @@ module.exports = class MemberSeeding1748420727344 {
 
     const defaultMembers = [
       {
-        name: '使用者1',
+        name: '王小明',
         email: 'example1@example.com',
         password: password1Hash,
         photo:
@@ -40,13 +40,13 @@ module.exports = class MemberSeeding1748420727344 {
         points: 0,
       },
       {
-        name: '使用者2',
+        name: '李小華',
         email: 'example2@example.com',
         password: password2Hash,
         photo:
           'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         level_id: level2.id,
-        points: 500,
+        points: 0,
       },
     ];
 

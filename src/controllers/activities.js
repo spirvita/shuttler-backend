@@ -2,6 +2,7 @@ const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Activities');
 const { isValidUUID, isValidString, isNumber, isValidDate } = require('../utils/validUtils');
 const appError = require('../utils/appError');
+const dayjs = require('../utils/dayjs');
 
 const activitiesController = {
   async getActivities(req, res, next) {
@@ -135,11 +136,11 @@ const activitiesController = {
       const data = [];
 
       for (const activity of activities) {
-        const start = new Date(activity.start_time);
-        const end = new Date(activity.end_time);
-        const date = start.toISOString().split('T')[0];
-        const startTime = start.toISOString().split('T')[1].slice(0, 5);
-        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+        const start = dayjs(activity.start_time).tz();
+        const end = dayjs(activity.end_time).tz();
+        const date = start.format('YYYY-MM-DD');
+        const startTime = start.format('HH:mm');
+        const endTime = end.format('HH:mm');
 
         const levels = await activityLevelsRepo.find({
           where: { activity: { id: activity.id } },
@@ -218,16 +219,16 @@ const activitiesController = {
         return next(appError(404, '查無活動資料'));
       }
 
-      const now = new Date();
-      const start = new Date(activities.start_time);
-      const end = new Date(activities.end_time);
-      const date = start.toISOString().split('T')[0];
-      const startTime = start.toISOString().split('T')[1].slice(0, 5);
-      const endTime = end.toISOString().split('T')[1].slice(0, 5);
+      const now = dayjs().tz();
+      const start = dayjs(activities.start_time).tz();
+      const end = dayjs(activities.end_time).tz();
+      const date = start.format('YYYY-MM-DD');
+      const startTime = start.format('HH:mm');
+      const endTime = end.format('HH:mm');
 
       let activityStatus;
 
-      if (end < now) {
+      if (end.isBefore(now)) {
         activityStatus = 'ended';
       } else if (activities.booked_count >= activities.participant_count) {
         activityStatus = 'full';

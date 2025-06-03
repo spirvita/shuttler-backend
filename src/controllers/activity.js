@@ -1,6 +1,7 @@
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('Activity');
 const appError = require('../utils/appError');
+const dayjs = require('../utils/dayjs');
 const {
   isValidUUID,
   isNumber,
@@ -268,11 +269,11 @@ const activityController = {
       const data = [];
 
       for (const activity of activities) {
-        const start = new Date(activity.start_time);
-        const end = new Date(activity.end_time);
-        const date = start.toISOString().split('T')[0];
-        const startTime = start.toISOString().split('T')[1].slice(0, 5);
-        const endTime = end.toISOString().split('T')[1].slice(0, 5);
+        const start = dayjs(activity.start_time).tz();
+        const end = dayjs(activity.end_time).tz();
+        const date = start.format('YYYY-MM-DD');
+        const startTime = start.format('HH:mm');
+        const endTime = end.format('HH:mm');
 
         const levels = await activityLevelsRepo.find({
           where: { activity: { id: activity.id } },
