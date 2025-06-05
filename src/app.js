@@ -4,6 +4,9 @@ const path = require('path');
 const pinoHttp = require('pino-http');
 const passport = require('./config/passport');
 const logger = require('./utils/logger')('app');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerSpec = require('./config/swagger');
 
 const v1Routes = require('./routes/v1');
 // const v2Routes = require('./routes/v2');
@@ -31,6 +34,9 @@ app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);
   next();
 });
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(swaggerSpec.v1Options)));
 
 // api router
 app.use('/api/v1', v1Routes);

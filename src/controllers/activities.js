@@ -77,7 +77,7 @@ const activitiesController = {
 
         activityIdsWithLevel = activityLevels.map((al) => al.activityId);
         if (activityIdsWithLevel.length === 0) {
-          return res.status(200).json({ message: '成功', data: [] });
+          return res.status(200).json({ message: '目前無資料', data: [] });
         }
       }
 
@@ -98,7 +98,7 @@ const activitiesController = {
         const zipCodes = cityZipCodes.map((row) => row.zipCode);
 
         if (zipCodes.length === 0) {
-          return res.status(400).json({ message: '無效的縣市' });
+          return res.status(400).json({ message: '縣市未填寫正確' });
         }
 
         activitiesQuery.andWhere('activity.zip_code IN (:...zipCodes)', { zipCodes });
