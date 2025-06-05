@@ -18,6 +18,10 @@ module.exports = new EntitySchema({
       type: 'uuid',
       nullable: false,
     },
+    points_order_id: {
+      type: 'uuid',
+      nullable: true,
+    },
     points_change: {
       type: 'int',
       nullable: false,
@@ -54,6 +58,15 @@ module.exports = new EntitySchema({
       inverseSide: 'pointsRecords',
       joinColumn: {
         name: 'member_id',
+        referencedColumnName: 'id',
+      },
+    },
+    pointsOrder: {
+      target: 'PointsOrder',
+      type: 'one-to-one',
+      inverseSide: 'pointsRecords',
+      joinColumn: {
+        name: 'points_order_id',
         referencedColumnName: 'id',
       },
     },

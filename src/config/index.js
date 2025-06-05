@@ -6,6 +6,7 @@ const web = require('./web');
 const jwt = require('./jwt');
 const google = require('./google');
 const aws = require('./aws');
+const newebpay = require('./newebpay');
 
 if (result.error) {
   throw result.error;
@@ -16,6 +17,7 @@ const config = {
   jwt,
   google,
   aws,
+  newebpay,
 };
 
 class ConfigManager {

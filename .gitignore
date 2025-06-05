@@ -3,3 +3,7 @@ node_modules
 
 # Environment varibales
 .env
+
+# test frontend
+newebpay.html
+.vscode

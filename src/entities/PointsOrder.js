@@ -18,6 +18,32 @@ module.exports = new EntitySchema({
       type: 'uuid',
       nullable: false,
     },
+    trade_no: {
+      type: 'varchar',
+      length: 255,
+      nullable: true,
+      unique: true,
+    },
+    pay_time: {
+      type: 'timestamptz',
+      nullable: true,
+    },
+    amount: {
+      type: 'int',
+      nullable: false,
+    },
+    merchant_order_no: {
+      type: 'varchar',
+      length: 255,
+      nullable: false,
+      unique: true,
+    },
+    status: {
+      type: 'enum',
+      enum: ['pending', 'completed', 'failed'],
+      default: 'pending',
+      nullable: false,
+    },
     created_at: {
       type: 'timestamptz',
       nullable: false,
