@@ -9,9 +9,14 @@ const HASHKEY = config.get('newebpay.HashKey');
 const HASHIV = config.get('newebpay.HashIV');
 const MerchantID = config.get('newebpay.MerchantID');
 const Version = config.get('newebpay.Version') || '2.2';
+const ItemDesc = config.get('newebpay.itemDesc') || '羽球活動點數';
+const notifyUrl =
+  config.get('newebpay.notifyUrl') || 'https://dev-api.shuttler.tw/api/v1/points/newebpay-notify';
+const returnUrl =
+  config.get('newebpay.returnUrl') || 'https://dev-api.shuttler.tw/api/v1/points/newebpay-return';
 
 function genDataChain(order) {
-  return `MerchantID=${MerchantID}&RespondType=JSON&TimeStamp=${order.TimeStamp}&Version=${Version}&MerchantOrderNo=${order.TimeStamp}&Amt=${order.Amt}&ItemDesc=${encodeURIComponent(order.ItemDesc)}&Email=${encodeURIComponent(order.email)}&CREDIT=1`;
+  return `MerchantID=${MerchantID}&RespondType=JSON&TimeStamp=${order.TimeStamp}&Version=${Version}&MerchantOrderNo=${order.TimeStamp}&Amt=${order.Amt}&ItemDesc=${encodeURIComponent(ItemDesc)}&ReturnURL=${returnUrl}&NotifyURL=${notifyUrl}&Email=${encodeURIComponent(order.email)}&CREDIT=1`;
 }
 
 function createMpgAesEncrypt(TradeInfo) {
@@ -241,6 +246,60 @@ const pointsController = {
       logger.error('新支付返回錯誤:', error);
       next(appError(500, '新支付返回錯誤'));
       // console.error('新支付返回錯誤:', error);
+    }
+  },
+  callbackCheck: async (req, res, next) => {
+    try {
+      // find user last five minutes order from points_order table
+      const { id } = req.user;
+      console.log('===================================================');
+      console.log('callbackCheck user id:', id);
+      console.log('===================================================');
+      const pointsOrderRepo = dataSource.getRepository('PointsOrder');
+      const order = await pointsOrderRepo.findOne({
+        where: {
+          member_id: id,
+          status: 'completed',
+        },
+        order: { created_at: 'DESC' },
+        take: 1, // 只取最近的一筆訂單
+        relations: ['member', 'pointsPlan'],
+      });
+
+      if (!order) {
+        logger.warn('回調檢查錯誤:', '沒有找到最近的點數訂單');
+        return res.status(404).json({
+          status: 'fail',
+          message: '沒有找到最近的點數訂單',
+        });
+      }
+
+      console.log('===================================================');
+      console.log('callbackCheck order:', order);
+      console.log('===================================================');
+
+      // 檢查訂單是否在最近五分鐘內
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      if (order.created_at < fiveMinutesAgo) {
+        logger.warn('回調檢查錯誤:', '查無5分鐘內訂單');
+        return res.status(200).json({
+          message: '查無5分鐘內訂單',
+        });
+      }
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          orderStatus: order.status,
+          pointsValue: order.pointsPlan.value,
+          userPoints: order.member.points,
+          merchantOrderNo: order.merchant_order_no,
+        },
+      });
+    } catch (error) {
+      // logger.error('回調檢查錯誤:', error);
+      // next(appError(500, '回調檢查錯誤'));
+      console.error('回調檢查錯誤:', error);
     }
   },
 };

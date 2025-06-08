@@ -6,6 +6,7 @@ const { authenticateJWT } = require('../../middlewares/auth');
 router.post('/purchase', authenticateJWT, pointsController.purchasePoints);
 router.post('/newebpay-notify', pointsController.newebpayNotify);
 router.post('/newebpay-return', pointsController.newebpayReturn);
+router.get('/callbackCheck', authenticateJWT, pointsController.callbackCheck);
 router.get('/', pointsController.getPoints);
 
 module.exports = router;
