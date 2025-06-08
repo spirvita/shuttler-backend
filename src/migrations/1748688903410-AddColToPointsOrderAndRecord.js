@@ -6,9 +6,9 @@
  * @class
  * @implements {MigrationInterface}
  */
-module.exports = class AddColToPointsOrderAndRecord1749138903410 {
+module.exports = class AddColToPointsOrderAndRecord1748688903410 {
   constructor() {
-    this.name = 'AddColToPointsOrderAndRecord1749138903410';
+    this.name = 'AddColToPointsOrderAndRecord1748688903410';
   }
 
   async up(queryRunner) {
