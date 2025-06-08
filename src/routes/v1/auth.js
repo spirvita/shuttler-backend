@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/auth');
 const passport = require('passport');
-const { authenticateLocal } = require('../../middlewares/auth');
+const { authenticateLocal, authenticateJWT } = require('../../middlewares/auth');
 
 router.post('/signup', authController.signUp);
 router.post('/login', authenticateLocal, authController.login);
@@ -16,6 +16,7 @@ router.get(
   }),
   authController.googleAuthCallback,
 );
+router.post('/reset-password', authenticateJWT, authController.resetPassword);
 
 module.exports = router;
 
