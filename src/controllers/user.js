@@ -278,6 +278,41 @@ const userController = {
       next(error);
     }
   },
+  getMemberRecords: async (req, res, next) => {
+    try {
+      const { id } = req.user;
+      const records = await dataSource.getRepository('PointsRecord').find({
+        where: {
+          member_id: id,
+        },
+        order: {
+          created_at: 'DESC',
+        },
+        relations: ['member', 'activity', 'pointsOrder'],
+      });
+
+      if (!records || records.length === 0) {
+        return res.status(200).json({ message: '目前無資料', data: [] });
+      }
+
+      const data = records.map((record) => ({
+        createTime: dayjs(record.created_at).tz().format('YYYY-MM-DD HH:mm'),
+        recordType: record.recordType,
+        pointsChange: record.points_change,
+        activity: record.activity_id
+          ? { activityId: record.activity.id, activityName: record.activity.name }
+          : null,
+      }));
+
+      res.status(200).json({
+        message: 'success',
+        data,
+      });
+    } catch (error) {
+      logger.error('取得使用者紀錄錯誤:', error);
+      appError(500, '取得使用者紀錄失敗');
+    }
+  },
 };
 
 module.exports = userController;

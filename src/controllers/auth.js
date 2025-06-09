@@ -98,8 +98,6 @@ const authController = {
   },
   logout: async (req, res, next) => {
     try {
-      // TODO: delete session or token
-
       logger.info('登出使用者成功');
       res.status(200).json({
         message: '登出成功',
