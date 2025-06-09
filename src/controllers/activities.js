@@ -47,19 +47,20 @@ const activitiesController = {
           if (!isNumber(Number(timeSlot)) || Number(timeSlot) < 0 || Number(timeSlot) > 23) {
             return next(appError(400, '時段格式錯誤，請提供 0~23 的數字'));
           }
-          dateTime = new Date(`${date}T${String(timeSlot).padStart(2, '0')}:00:00Z`);
+
+          const timeStr = `${date} ${String(timeSlot).padStart(2, '0')}:00`;
+          dateTime = dayjs(timeStr, 'YYYY-MM-DD HH:mm').tz().toDate();
         } else {
-          dateTime = new Date(`${date}T00:00:00Z`);
+          dateTime = dayjs(`${date} 00:00`, 'YYYY-MM-DD HH:mm').tz().toDate();
         }
 
         if (isNaN(dateTime.getTime())) {
           return next(appError(400, '無效的日期時間'));
         }
       } else {
-        dateTime = new Date();
+        dateTime = dayjs().tz().toDate();
       }
-      endDateTime = new Date(dateTime);
-      endDateTime.setDate(endDateTime.getDate() + 14);
+      endDateTime = dayjs(dateTime).add(14, 'day').toDate();
 
       const activitiesRepo = dataSource.getRepository('Activities');
       const activityLevelsRepo = dataSource.getRepository('ActivityLevels');

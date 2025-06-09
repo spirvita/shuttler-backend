@@ -115,22 +115,19 @@ const activityController = {
       if (!['draft', 'published'].includes(status)) {
         return next(appError(400, '狀態未填寫正確'));
       }
-      if (status === 'published' && new Date(`${date}T${startTime}`) <= new Date()) {
+      const startDateTime = dayjs(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm').tz();
+      const endDateTime = dayjs(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm').tz();
+      const now = dayjs().tz();
+      if (status === 'published' && startDateTime.isBefore(now)) {
         return next(appError(400, '發佈活動時，開始時間必須在現在時間之後'));
       }
-      if (
-        status === 'published' &&
-        new Date(`${date}T${endTime}`) <= new Date(`${date}T${startTime}`)
-      ) {
+      if (status === 'published' && endDateTime.isSameOrBefore(startDateTime)) {
         return next(appError(400, '發佈活動時，結束時間必須在開始時間之後'));
       }
-      if (status === 'draft' && new Date(`${date}T${startTime}`) <= new Date()) {
+      if (status === 'draft' && startDateTime.isBefore(now)) {
         return next(appError(400, '儲存活動時，開始時間必須在現在時間之後'));
       }
-      if (
-        status === 'draft' &&
-        new Date(`${date}T${endTime}`) <= new Date(`${date}T${startTime}`)
-      ) {
+      if (status === 'draft' && endDateTime.isSameOrBefore(startDateTime)) {
         return next(appError(400, '儲存活動時，結束時間必須在開始時間之後'));
       }
       const cityData = await queryRunner.manager.getRepository('Cities').findOne({
@@ -144,8 +141,8 @@ const activityController = {
       const newActivity = activitiesRepo.create({
         member_id: id,
         name,
-        start_time: new Date(`${date}T${startTime}`),
-        end_time: new Date(`${date}T${endTime}`),
+        start_time: startDateTime.toDate(),
+        end_time: endDateTime.toDate(),
         participant_count: participantCount,
         rental_lot: rentalLot,
         ball_type: ballType,
@@ -224,7 +221,7 @@ const activityController = {
       const cityRepo = dataSource.getRepository('Cities');
 
       const takeLimit = 6;
-      const now = new Date();
+      const now = dayjs().tz().toDate();
 
       // Step 1: 先查詢會員地區的活動
       const primaryActivities = await activitiesRepo.find({
@@ -338,7 +335,7 @@ const activityController = {
       const activityPicturesRepo = dataSource.getRepository('ActivityPictures');
       const cityRepo = dataSource.getRepository('Cities');
       const takeLimit = 6;
-      const now = new Date();
+      const now = dayjs().tz().toDate();
 
       // 會員地區的熱門活動（排除滿人，參與比例高>低排序）
       const primaryQuery = activitiesRepo
@@ -576,7 +573,9 @@ const activityController = {
         return next(appError(404, '活動不存在'));
       }
 
-      if (new Date(activity.start_time) <= new Date()) {
+      const now = dayjs().tz();
+      const activityStartTime = dayjs(activity.start_time).tz();
+      if (!activityStartTime.isAfter(now)) {
         return next(appError(400, '活動已結束'));
       }
 
@@ -594,23 +593,29 @@ const activityController = {
         return next(appError(400, '報名失敗，活動點數不足'));
       }
 
-      const existingRegistration = await activitiesRegisterRepo.findOne({
+      let registration = await activitiesRegisterRepo.findOne({
         where: {
           member: { id: member.id },
           activity: { id: activityId },
         },
       });
-      if (existingRegistration) {
+      if (registration && registration.status === 'registered') {
         return next(appError(409, '你已經報名此活動'));
       }
 
-      const newRegistration = activitiesRegisterRepo.create({
-        member: { id: member.id },
-        activity: { id: activityId },
-        status: 'registered',
-        participant_count: participantCount,
-      });
-      await activitiesRegisterRepo.save(newRegistration);
+      if (registration) {
+        registration.status = 'registered';
+        registration.participant_count = participantCount;
+      } else {
+        registration = activitiesRegisterRepo.create({
+          member: { id: member.id },
+          activity: { id: activityId },
+          status: 'registered',
+          participant_count: participantCount,
+        });
+      }
+
+      await activitiesRegisterRepo.save(registration);
 
       member.points -= totalCost;
       await membersRepo.save(member);
@@ -629,7 +634,7 @@ const activityController = {
 
       res.status(201).json({
         message: '報名成功',
-        registrationId: newRegistration.id,
+        registrationId: registration.id,
       });
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -671,7 +676,9 @@ const activityController = {
         return next(appError(404, '活動不存在'));
       }
 
-      if (new Date(activity.start_time) <= new Date()) {
+      const now = dayjs().tz();
+      const activityStartTime = dayjs(activity.start_time).tz();
+      if (!activityStartTime.isAfter(now)) {
         return next(appError(400, '活動已結束，無法取消報名'));
       }
 
