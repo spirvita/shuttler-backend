@@ -41,12 +41,6 @@ jobs:
             echo "🔍 檢查目前 PM2 執行中的應用列表..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 list
 
-            echo "🛑 停止 PM2 中名為 api 的應用..."
-            docker exec -i demo-backend-amd64 /pnpm/pm2 stop api
-
-            echo "🗑️ 刪除 PM2 中名為 api 的應用..."
-            docker exec -i demo-backend-amd64 /pnpm/pm2 delete api
-
             echo "� 開始檢查資料庫狀態..."
             check_db_exists "${DB_DATABASE_DEV}"
 
@@ -66,6 +60,6 @@ jobs:
             docker exec -i demo-backend-amd64 npm run seed
             echo "✅ 資料庫種子資料已成功執行完成。"
 
-            echo "🟢 啟動 PM2 中名為 api 的應用..."
-            docker exec -i demo-backend-amd64 /pnpm/pm2 start ./bin/www.js --name api
+            echo "🟢 重啟 PM2 中名為 api 的應用..."
+            docker exec -i demo-backend-amd64 /pnpm/pm2 restart api
             echo "🚀 Deploy complete"
