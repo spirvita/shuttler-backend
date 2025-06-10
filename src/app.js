@@ -50,7 +50,7 @@ app.use((req, res, next) => {
   });
 });
 
-app.router.get('/test', (req, res) => {
+app.router.get('/test-api', (req, res) => {
   res.json({
     status: 'success',
     message: 'test api endpoint',
