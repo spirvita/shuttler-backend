@@ -231,10 +231,10 @@ const activitiesController = {
 
       if (end.isBefore(now)) {
         activityStatus = 'ended';
-      } else if (activities.booked_count >= activities.participant_count) {
-        activityStatus = 'full';
       } else if (isRegistered) {
         activityStatus = 'registered';
+      } else if (activities.booked_count >= activities.participant_count) {
+        activityStatus = 'full';
       } else {
         activityStatus = 'published';
       }
