@@ -7,6 +7,7 @@ const organizerRouter = require('./organizer');
 const uploadRouter = require('./upload');
 const pointsRouter = require('./points');
 const toolsRouter = require('./tools');
+const testRouter = require('./test');
 
 const router = express.Router();
 
@@ -18,6 +19,7 @@ router.use('/organizer', organizerRouter);
 router.use('/upload-image', uploadRouter);
 router.use('/points', pointsRouter);
 router.use('/tools', toolsRouter);
+router.use('/test', testRouter);
 
 module.exports = router;
 
