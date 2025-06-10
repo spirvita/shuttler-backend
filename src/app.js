@@ -50,6 +50,13 @@ app.use((req, res, next) => {
   });
 });
 
+app.router.get('/test', (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'test api endpoint',
+  });
+});
+
 // 500 middleware
 app.use((err, req, res, next) => {
   req.log.error(err);
