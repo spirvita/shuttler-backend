@@ -50,6 +50,6 @@ module.exports = class MemberFavActSeeing1748420727346 {
   }
 
   async down(queryRunner) {
-    await queryRunner.query(`DELETE FROM MEMBER_FAVORITE_ACTIVITIES`);
+    await queryRunner.query(`DELETE FROM "MEMBER_FAVORITE_ACTIVITIES"`);
   }
 };

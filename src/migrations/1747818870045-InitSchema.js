@@ -12,6 +12,19 @@ module.exports = class InitSchema1747818870045 {
   }
 
   async up(queryRunner) {
+    const typeExists = await queryRunner.query(`
+        SELECT EXISTS (
+            SELECT 1 FROM pg_type 
+            WHERE typname = 'activity_status');`);
+
+    console.log('Checking if activity_status type exists:', typeExists);
+    // 只有在類型不存在時才創建
+    if (!typeExists[0].exists) {
+      await queryRunner.query(
+        `CREATE TYPE "activity_status" AS ENUM('draft', 'published', 'suspended')`,
+      );
+    }
+
     await queryRunner.query(`
             CREATE TABLE "MEMBERS" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -219,5 +232,6 @@ module.exports = class InitSchema1747818870045 {
     await queryRunner.query(`
             DROP TABLE "MEMBERS"
         `);
+    await queryRunner.query(`DROP TYPE IF EXISTS "activity_status"`);
   }
 };

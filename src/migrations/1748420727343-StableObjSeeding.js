@@ -100,8 +100,8 @@ module.exports = class StableObjSeeding1748420727343 {
     const zipCodes = DEFAULT_CITIES.map((c) => c.zip_code);
     const facilityNames = DEFAULT_FACILITIES.map((f) => f.name);
 
-    await queryRunner.query('DELETE FROM FACILITIES WHERE name = ANY($1)', [facilityNames]);
-    await queryRunner.query('DELETE FROM CITIES WHERE zip_code = ANY($1)', [zipCodes]);
-    await queryRunner.query('DELETE FROM LEVELS WHERE level = ANY($1)', [levelNumbers]);
+    await queryRunner.query('DELETE FROM "FACILITIES" WHERE name = ANY($1)', [facilityNames]);
+    await queryRunner.query('DELETE FROM "CITIES" WHERE zip_code = ANY($1)', [zipCodes]);
+    await queryRunner.query('DELETE FROM "LEVELS" WHERE level = ANY($1)', [levelNumbers]);
   }
 };
