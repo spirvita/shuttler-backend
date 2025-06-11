@@ -11,9 +11,9 @@ const MerchantID = config.get('newebpay.MerchantID');
 const Version = config.get('newebpay.Version') || '2.2';
 const ItemDesc = config.get('newebpay.itemDesc') || '羽球活動點數';
 const notifyUrl =
-  config.get('newebpay.notifyUrl') || 'https://dev-api.shuttler.tw/api/v1/points/newebpay-notify';
+  config.get('newebpay.notifyUrl') || 'https://dev-api.spirvita.tw/api/v1/points/newebpay-notify';
 const returnUrl =
-  config.get('newebpay.returnUrl') || 'https://dev-api.shuttler.tw/api/v1/points/newebpay-return';
+  config.get('newebpay.returnUrl') || 'https://dev-api.spirvita.tw/api/v1/points/newebpay-return';
 
 function genDataChain(order) {
   return `MerchantID=${MerchantID}&RespondType=JSON&TimeStamp=${order.TimeStamp}&Version=${Version}&MerchantOrderNo=${order.TimeStamp}&Amt=${order.Amt}&ItemDesc=${encodeURIComponent(ItemDesc)}&ReturnURL=${returnUrl}&NotifyURL=${notifyUrl}&Email=${encodeURIComponent(order.email)}&CREDIT=1`;
