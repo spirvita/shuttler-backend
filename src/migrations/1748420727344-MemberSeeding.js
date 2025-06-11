@@ -70,6 +70,6 @@ module.exports = class MemberSeeding1748420727344 {
     const emails = ['example1@example.com', 'example2@example.com'];
 
     // 批量刪除
-    await queryRunner.query('DELETE FROM MEMBERS WHERE email = ANY($1)', [emails]);
+    await queryRunner.query('DELETE FROM "MEMBERS" WHERE email = ANY($1)', [emails]);
   }
 };

@@ -34,6 +34,6 @@ module.exports = class PointsSeeding1748420727347 {
   }
 
   async down(queryRunner) {
-    await queryRunner.query('DELETE FROM POINTS_PLAN');
+    await queryRunner.query('DELETE FROM "POINTS_PLAN"');
   }
 };

@@ -5,15 +5,15 @@ const config = require('../config');
 const crypto = require('crypto');
 const { parseNewebpayTime } = require('../utils/parseNewebpayTime');
 
+const backendUrl = config.get('backendUrl');
 const HASHKEY = config.get('newebpay.HashKey');
 const HASHIV = config.get('newebpay.HashIV');
 const MerchantID = config.get('newebpay.MerchantID');
 const Version = config.get('newebpay.Version') || '2.2';
 const ItemDesc = config.get('newebpay.itemDesc') || '羽球活動點數';
-const notifyUrl =
-  config.get('newebpay.notifyUrl') || 'https://dev-api.spirvita.tw/api/v1/points/newebpay-notify';
-const returnUrl =
-  config.get('newebpay.returnUrl') || 'https://dev-api.spirvita.tw/api/v1/points/newebpay-return';
+const notifyUrl = config.get('newebpay.notifyUrl') || `${backendUrl}/api/v1/points/newebpay-notify`;
+const returnUrl = config.get('newebpay.returnUrl') || `${backendUrl}/api/v1/points/newebpay-return`;
+const frontendRedirectUrl = config.get('newebpay.frontendRedirectUrl');
 
 function genDataChain(order) {
   return `MerchantID=${MerchantID}&RespondType=JSON&TimeStamp=${order.TimeStamp}&Version=${Version}&MerchantOrderNo=${order.TimeStamp}&Amt=${order.Amt}&ItemDesc=${encodeURIComponent(ItemDesc)}&ReturnURL=${returnUrl}&NotifyURL=${notifyUrl}&Email=${encodeURIComponent(order.email)}&CREDIT=1`;
@@ -219,42 +219,36 @@ const pointsController = {
 
       if (!order) {
         logger.error('查無訂單:', MerchantOrderNo);
-        return res.redirect(
-          `https://dev.shuttler.tw/buy-points/callback?status=fail&message=OrderNotFound`,
-        );
+        return res.redirect(`${frontendRedirectUrl}?status=fail&message=OrderNotFound`);
       }
 
       if (order.status !== 'completed') {
         logger.error('訂單處理超時或失敗:', MerchantOrderNo, order.status);
         return res.redirect(
-          `https://dev.shuttler.tw/buy-points/callback?status=timeout&merchantOrderNo=${MerchantOrderNo}`,
+          `${frontendRedirectUrl}?status=timeout&merchantOrderNo=${MerchantOrderNo}`,
         );
       }
 
       if (Status !== 'SUCCESS') {
         return res.redirect(
-          `https://dev.shuttler.tw/buy-points/callback?status=fail&message=${encodeURIComponent(Message)}`,
+          `${frontendRedirectUrl}?status=fail&message=${encodeURIComponent(Message)}`,
         );
       }
 
       // 導向前端成功頁面
-      const redirectUrl = `https://dev.shuttler.tw/buy-points/callback?status=success&pointsValue=${order.pointsPlan.value}&userPoints=${order.member.points}&merchantOrderNo=${MerchantOrderNo}`;
+      const redirectUrl = `${frontendRedirectUrl}?status=success&pointsValue=${order.pointsPlan.value}&userPoints=${order.member.points}&merchantOrderNo=${MerchantOrderNo}`;
 
       logger.info(`重定向到: ${redirectUrl}`);
       res.redirect(redirectUrl);
     } catch (error) {
       logger.error('新支付返回錯誤:', error);
       next(appError(500, '新支付返回錯誤'));
-      // console.error('新支付返回錯誤:', error);
     }
   },
   callbackCheck: async (req, res, next) => {
     try {
       // find user last five minutes order from points_order table
       const { id } = req.user;
-      console.log('===================================================');
-      console.log('callbackCheck user id:', id);
-      console.log('===================================================');
       const pointsOrderRepo = dataSource.getRepository('PointsOrder');
       const order = await pointsOrderRepo.findOne({
         where: {
@@ -273,10 +267,6 @@ const pointsController = {
           message: '沒有找到最近的點數訂單',
         });
       }
-
-      console.log('===================================================');
-      console.log('callbackCheck order:', order);
-      console.log('===================================================');
 
       // 檢查訂單是否在最近五分鐘內
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -297,9 +287,8 @@ const pointsController = {
         },
       });
     } catch (error) {
-      // logger.error('回調檢查錯誤:', error);
-      // next(appError(500, '回調檢查錯誤'));
-      console.error('回調檢查錯誤:', error);
+      logger.error('回調檢查錯誤:', error);
+      next(appError(500, '回調檢查錯誤'));
     }
   },
 };

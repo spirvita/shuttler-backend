@@ -169,9 +169,9 @@ module.exports = class ActivitiesSeeding1748420727345 {
 
   async down(queryRunner) {
     // 按依賴順序刪除，避免外鍵約束錯誤
-    await queryRunner.query('DELETE FROM ACTIVITY_PICTURES');
-    await queryRunner.query('DELETE FROM ACTIVITY_LEVELS');
-    await queryRunner.query('DELETE FROM ACTIVITY_FACILITIES');
-    await queryRunner.query('DELETE FROM ACTIVITIES');
+    await queryRunner.query('DELETE FROM "ACTIVITY_PICTURES"');
+    await queryRunner.query('DELETE FROM "ACTIVITY_LEVELS"');
+    await queryRunner.query('DELETE FROM "ACTIVITY_FACILITIES"');
+    await queryRunner.query('DELETE FROM "ACTIVITIES"');
   }
 };
