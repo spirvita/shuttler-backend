@@ -5,7 +5,7 @@ const config = require('../config');
 const crypto = require('crypto');
 const { parseNewebpayTime } = require('../utils/parseNewebpayTime');
 
-const backendUrl = config.get('backendUrl');
+const backendUrl = config.get('newebpay.backendUrl');
 const HASHKEY = config.get('newebpay.HashKey');
 const HASHIV = config.get('newebpay.HashIV');
 const MerchantID = config.get('newebpay.MerchantID');
