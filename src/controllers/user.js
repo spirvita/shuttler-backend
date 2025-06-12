@@ -44,7 +44,7 @@ const userController = {
         let activityStatus;
         if (activity.activity.status === 'suspended') {
           activityStatus = 'suspended';
-        } else if (activity.activity.status === 'cancelled') {
+        } else if (activity.status === 'cancelled') {
           activityStatus = 'cancelled';
         } else if (activity.activity.status === 'published') {
           const now = dayjs().tz();
