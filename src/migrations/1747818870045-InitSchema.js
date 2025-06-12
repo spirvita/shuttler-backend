@@ -17,7 +17,6 @@ module.exports = class InitSchema1747818870045 {
             SELECT 1 FROM pg_type 
             WHERE typname = 'activity_status');`);
 
-    console.log('Checking if activity_status type exists:', typeExists);
     // 只有在類型不存在時才創建
     if (!typeExists[0].exists) {
       await queryRunner.query(
@@ -41,9 +40,6 @@ module.exports = class InitSchema1747818870045 {
                 CONSTRAINT "PK_0f51565dcc6fabd22fe971dbc3f" PRIMARY KEY ("id")
             )
         `);
-    await queryRunner.query(
-      `CREATE TYPE "activity_status" AS ENUM('draft', 'published', 'suspended')`,
-    );
     await queryRunner.query(`
             CREATE TABLE "ACTIVITIES" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),

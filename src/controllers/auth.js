@@ -130,6 +130,35 @@ const authController = {
       next(error);
     }
   },
+  resetPassword: async (req, res, next) => {
+    try {
+      const { id } = req.user;
+      const { newPassword, checkNewPassword } = req.body;
+      if (!isValidPassword(newPassword) || !isValidPassword(checkNewPassword)) {
+        logger.warn('重設密碼錯誤:', '新密碼格式不正確');
+        return next(appError(400, '新密碼格式不正確'));
+      }
+
+      const user = await dataSource.getRepository('Members').findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        logger.warn('重設密碼錯誤:', '此 Email 未註冊');
+        return next(appError(400, '此 Email 未註冊'));
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+      await dataSource.getRepository('Members').save(user);
+
+      logger.info('重設密碼成功:', user.id);
+      res.status(200).json({ message: '密碼重設成功' });
+    } catch (error) {
+      logger.error('重設密碼錯誤:', error);
+      appError(500, '重設密碼失敗');
+    }
+  },
 };
 
 module.exports = authController;
