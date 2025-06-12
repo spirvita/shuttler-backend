@@ -41,14 +41,22 @@ module.exports = router;
  *             type: object
  *             required:
  *               - name
+ *               - date
+ *               - startTime
+ *               - endTime
  *               - participantCount
  *               - rentalLot
  *               - ballType
+ *               - points
  *               - level
+ *               - city
+ *               - district
+ *               - address
  *               - venueName
  *               - venueFacilities
  *               - contactName
  *               - contactPhone
+ *               - status
  *             properties:
  *               name:
  *                 type: string
