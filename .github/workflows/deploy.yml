@@ -44,21 +44,16 @@ jobs:
             echo "� 開始檢查資料庫狀態..."
             check_db_exists "${DB_DATABASE_DEV}"
 
-            echo "🔥 開始刪除資料庫 ${DB_DATABASE_DEV}..."
-            psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d postgres -c "DROP DATABASE IF EXISTS \"${DB_DATABASE_DEV}\";"
-            check_db_exists "${DB_DATABASE_DEV}"
-
-            echo "🛠️ 開始建立資料庫 ${DB_DATABASE_DEV}..."
-            psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d postgres -c "CREATE DATABASE \"${DB_DATABASE_DEV}\" WITH OWNER \"${DB_USERNAME}\" TEMPLATE template0 ENCODING 'UTF8';"
-            check_db_exists "${DB_DATABASE_DEV}"
-
             echo "📦 開始安裝 PNPM 相依套件..."
             docker exec -i demo-backend-amd64 /usr/local/bin/pnpm install
             echo "✅ PNPM 相依套件安裝完成。"
 
-            echo "🌱 開始執行資料庫種子資料（seed）初始化..."
-            docker exec -i demo-backend-amd64 npm run seed
-            echo "✅ 資料庫種子資料已成功執行完成。"
+            echo "🌱 確認 DB migration 檔案"
+            docker exec -i demo-backend-amd64 pnpm migration:show
+
+            echo "🌱 確認 DB migration 檔案"
+            docker exec -i demo-backend-amd64 pnpm migration:run
+            echo "✅ 資料庫 migration 完成。"
 
             echo "🟢 重啟 PM2 中名為 api 的應用..."
             docker exec -i demo-backend-amd64 /pnpm/pm2 restart api
