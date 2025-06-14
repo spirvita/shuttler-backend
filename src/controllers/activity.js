@@ -383,7 +383,10 @@ const activityController = {
           .where('a.status = :status', { status: 'published' })
           .andWhere('a.booked_count < a.participant_count')
           .andWhere('a.start_time > :now', { now })
-          .andWhere('a.id NOT IN (:...excludedIds)', { excludedIds })
+        if (excludedIds.length > 0) {
+          fallbackQuery.andWhere('a.id NOT IN (:...excludedIds)', { excludedIds });
+        }
+        fallbackQuery
           .orderBy('participation_ratio', 'DESC')
           .addOrderBy('a.start_time', 'ASC')
           .take(remaining);

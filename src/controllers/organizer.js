@@ -63,8 +63,8 @@ const organizerController = {
         let activityStatus;
         if (activity.status === 'draft') {
           activityStatus = 'draft';
-        } else if (activity.status === 'cancelled') {
-          activityStatus = 'cancelled';
+        } else if (activity.status === 'suspended') {
+          activityStatus = 'suspended';
         } else if (activity.status === 'published') {
           activityStatus = end.isBefore(now) ? 'ended' : 'published';
         }
@@ -343,13 +343,20 @@ const organizerController = {
       const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
 
       const activity = await activitiesRepo.findOne({
-        where: { id: activityId, member_id: memberId },
+        where: { id: activityId, member_id: memberId, status: 'published' },
       });
       if (!activity) {
         return next(appError(404, '無此活動或無權限查看'));
       }
-      if (activity.status === 'suspended') {
-        return next(appError(400, '活動已經是停辦狀態'));
+
+      const now = dayjs().tz();
+      const start = dayjs(activity.start_time).tz();
+      const end = dayjs(activity.end_time).tz();
+      if (end.isBefore(now)) {
+        return next(appError(400, '活動已經結束，無法停辦'));
+      }
+      if (start.isBefore(now)) {
+        return next(appError(400, '活動已經開始，無法停辦'));
       }
 
       await activitiesRepo.update({ id: activityId }, { status: 'suspended' });
