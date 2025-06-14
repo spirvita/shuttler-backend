@@ -604,6 +604,47 @@ const organizerController = {
       await queryRunner.release();
     }
   },
+  async deleteDraftActivity(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const memberId = req.user.id;
+      const { activityId } = req.params;
+      if (!isValidUUID(activityId)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const activityPicturesRepo = queryRunner.manager.getRepository('ActivityPictures');
+      const activityFacilitiesRepo = queryRunner.manager.getRepository('ActivityFacilities');
+      const activityLevelsRepo = queryRunner.manager.getRepository('ActivityLevels');
+      const activity = await activitiesRepo.findOne({
+        where: { id: activityId, member_id: memberId, status: 'draft' },
+      });
+      if (!activity) {
+        return next(appError(404, '無此活動或無權限刪除'));
+      }
+
+      await activityPicturesRepo.delete({ activity_id: activityId });
+      await activityFacilitiesRepo.delete({ activity_id: activityId });
+      await activityLevelsRepo.delete({ activity_id: activityId });
+      await activitiesRepo.delete({ id: activityId });
+
+      await queryRunner.commitTransaction();
+
+      res.status(200).json({
+        message: '刪除成功',
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('刪除活動錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 };
 
 module.exports = organizerController;
