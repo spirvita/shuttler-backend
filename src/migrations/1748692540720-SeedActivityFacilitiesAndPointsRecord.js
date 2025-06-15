@@ -88,6 +88,10 @@ module.exports = class SeedActivityFacilitiesAndPointsRecord1748692540720 {
   async down(queryRunner) {
     await queryRunner.query(`DELETE FROM "ACTIVITY_FACILITIES"`);
     await queryRunner.query(`DELETE FROM "POINTS_RECORD"`);
-    await queryRunner.query(`ALTER TABLE "ACTIVITIES" ALTER COLUMN "zip_code" TYPE INTEGER`);
+    // 將 zip_code 從 VARCHAR 改回 INTEGER
+    // 使用 USING 子句進行顯式轉換
+    await queryRunner.query(
+      `ALTER TABLE "ACTIVITIES" ALTER COLUMN "zip_code" TYPE INTEGER USING "zip_code"::INTEGER`,
+    );
   }
 };
