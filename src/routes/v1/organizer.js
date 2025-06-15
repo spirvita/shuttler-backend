@@ -8,6 +8,7 @@ router.get('/activities/:activityId', authenticateJWT, organizerController.getAc
 router.put('/activity/:activityId', authenticateJWT, organizerController.updateActivity);
 router.post('/activity/:activityId/suspend', authenticateJWT, organizerController.suspendActivity);
 router.put('/draft/:activityId', authenticateJWT, organizerController.updateDraftActivity);
+router.delete('/draft/:activityId', authenticateJWT, organizerController.deleteDraftActivity);
 
 module.exports = router;
 
@@ -727,6 +728,75 @@ module.exports = router;
  *                 summary: 無此設施
  *                 value:
  *                   message: "無此設施"
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+
+/**
+ * @swagger
+ * /api/v1/organizer/draft/{activityId}:
+ *   delete:
+ *     tags: [Organizer]
+ *     summary: 刪除草稿活動
+ *     description: 主辦人可以刪除草稿活動
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: activityId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: 活動 ID
+ *     responses:
+ *       200:
+ *         description: 刪除成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "刪除成功"
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               invalidUUID:
+ *                 summary: ID未填寫正確
+ *                 value:
+ *                   message: "ID未填寫正確"
+ *       401:
+ *         description: 身份驗證失敗
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "身份驗證失敗"
+ *       404:
+ *         description: 找不到資源
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               activityNotFound:
+ *                 summary: 無此活動或無權限刪除
+ *                 value:
+ *                   message: "無此活動或無權限刪除"
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */

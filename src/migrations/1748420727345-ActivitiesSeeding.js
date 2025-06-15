@@ -147,6 +147,41 @@ module.exports = class ActivitiesSeeding1748420727345 {
     console.log(`✓ ActivityPictures seeding 完成 (${activityPicturesData.length} 張圖片)`);
   }
 
+  async seedActivitiesRegister(queryRunner, activities) {
+    const membersRepo = queryRunner.manager.getRepository('Members');
+    const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
+
+    const members = await membersRepo.find();
+
+    const activitiesRegisterMappings = [
+      { activityIndex: 0, memberIndexes: 0, participantCount: 5 },
+      { activityIndex: 1, memberIndexes: 1, participantCount: 8 },
+      { activityIndex: 2, memberIndexes: 0, participantCount: 10 },
+      { activityIndex: 3, memberIndexes: 1, participantCount: 6 },
+      { activityIndex: 4, memberIndexes: 0, participantCount: 12 },
+      { activityIndex: 5, memberIndexes: 1, participantCount: 4 },
+      { activityIndex: 6, memberIndexes: 0, participantCount: 7 },
+      { activityIndex: 7, memberIndexes: 1, participantCount: 14 },
+      { activityIndex: 8, memberIndexes: 0, participantCount: 5 },
+      { activityIndex: 9, memberIndexes: 1, participantCount: 6 },
+    ];
+
+    const activitiesRegisterData = [];
+    activitiesRegisterMappings.forEach((mapping) => {
+      if (activities[mapping.activityIndex]) {
+        activitiesRegisterData.push({
+          activity_id: activities[mapping.activityIndex].id,
+          member_id: members[mapping.memberIndexes].id,
+          status: 'registered',
+          participant_count: mapping.participantCount,
+        });
+      }
+    });
+
+    await activitiesRegisterRepo.save(activitiesRegisterData);
+    console.log(`✓ ActivitiesRegisters seeding 完成 (${activitiesRegisterData.length} 筆報名)`);
+  }
+
   async up(queryRunner) {
     await queryRunner.startTransaction();
 
@@ -157,6 +192,7 @@ module.exports = class ActivitiesSeeding1748420727345 {
         this.seedActivityLevels(queryRunner, activities),
         this.seedActivityFacilities(queryRunner, activities),
         this.seedActivityPictures(queryRunner, activities),
+        this.seedActivitiesRegister(queryRunner, activities),
       ]);
 
       await queryRunner.commitTransaction();
