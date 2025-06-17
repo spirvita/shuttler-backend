@@ -8,6 +8,7 @@ router.get('/upcoming', optionalAuthenticateJWT, activityController.upcomingActi
 router.get('/popular', optionalAuthenticateJWT, activityController.popularActivities);
 router.post('/favorites', authenticateJWT, activityController.addFavoriteActivities);
 router.post('/registration', authenticateJWT, activityController.registerActivity);
+router.put('/registration', authenticateJWT, activityController.updateRegistration);
 router.delete('/registration/:activityId', authenticateJWT, activityController.cancelActivity);
 router.delete(
   '/favorites/:activityId',

@@ -727,6 +727,102 @@ const activityController = {
       await queryRunner.release();
     }
   },
+  async updateRegistration(req, res, next) {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const { id } = req.user;
+      const { activityId, participantCount } = req.body;
+
+      if (!isValidUUID(activityId) || !isValidUUID(id)) {
+        return next(appError(400, 'ID未填寫正確'));
+      }
+      if (!isNumber(participantCount) || participantCount <= 0) {
+        return next(appError(400, '報名人數未填寫正確，且必須大於 0'));
+      }
+      const membersRepo = queryRunner.manager.getRepository('Members');
+      const activitiesRepo = queryRunner.manager.getRepository('Activities');
+      const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
+      const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
+
+      const member = await membersRepo.findOne({ where: { id } });
+      if (!member) return next(appError(404, '會員不存在'));
+
+      const activity = await activitiesRepo.findOne({
+        where: { id: activityId, status: 'published' },
+      });
+      if (!activity) return next(appError(404, '活動不存在'));
+
+      const now = dayjs().tz();
+      const start = dayjs(activity.start_time).tz();
+      const end = dayjs(activity.end_time).tz();
+      if (end.isBefore(now)) return next(appError(400, '活動已結束，無法修改報名人數'));
+      if (start.isBefore(now)) return next(appError(400, '活動已開始，無法修改報名人數'));
+
+      let registration = await activitiesRegisterRepo.findOne({
+        where: {
+          member: { id: member.id },
+          activity: { id: activityId },
+        },
+      });
+      if (!registration) return next(appError(404, '你尚未報名此活動'));
+
+      if (registration.status === 'cancelled') {
+        return next(appError(409, '你已經取消報名此活動，無法修改人數'));
+      }
+
+      const originalCount = registration.participant_count;
+      if (registration.status === 'registered' && originalCount === participantCount) {
+        return res.status(200).json({ message: '報名人數未變更' });
+      }
+
+      const diffCount = participantCount - originalCount;
+      const diffPoints = activity.points * Math.abs(diffCount);
+
+      const availableSlots = activity.participant_count - (activity.booked_count - originalCount);
+      if (diffCount > 0 && participantCount > availableSlots) {
+        return next(appError(400, `活動名額不足，剩餘 ${activity.participant_count - activity.booked_count} 人`));
+      }
+
+      if (diffCount > 0 && member.points < diffPoints) {
+        return next(appError(400, '點數不足'));
+      }
+
+      // 更新報名人數
+      registration.participant_count = participantCount;
+      await activitiesRegisterRepo.save(registration);
+      // 更新活動已報名人數
+      activity.booked_count += diffCount;
+      await activitiesRepo.save(activity);
+      // 更新會員點數
+      if (diffCount > 0) {
+        member.points -= diffPoints;
+      } else {
+        member.points += diffPoints;
+      }
+      await membersRepo.save(member);
+      // 記錄點數變更
+      await pointsRecordRepo.save({
+        member: { id: member.id },
+        activity: { id: activity.id },
+        points_change: diffCount > 0 ? -diffPoints : diffPoints,
+        recordType: 'applyAct',
+      });
+      await queryRunner.commitTransaction();
+      res.status(200).json({
+        message: '修改報名人數成功',
+        registrationId: registration.id,
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      logger.error('修改報名人數錯誤:', error);
+      next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 };
 
 module.exports = activityController;
