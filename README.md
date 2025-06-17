@@ -1,245 +1,263 @@
+# 羽神同行｜羽球活動報名系統（Backend）
 
-# 專案使用說明
+這是一套專為羽球同好打造的活動報名系統。讓使用者可以快速找到可參加的羽球活動，也讓活動發起者能節省繁瑣流程，快速建立報名頁面、管理參與者名單與金流狀態。
 
-## Directory Structure
+## 目錄
+- [功能特色](#功能特色)
+- [使用技術](#使用技術)
+- [專案架構](#專案架構)
+- [環境變數](#環境變數)
+- [快速開始](#快速開始)
+  - [前置需求](#前置需求)
+  - [安裝步驟](#安裝步驟)
+- [Make 指令清單](#make-指令清單)
+  - [Docker 指令](#docker-指令)
+  - [Docker Compose 指令](#docker-compose-指令)
+  - [其它指令](#其它指令)
+- [API 文件與部署資訊](#api-文件與部署資訊)
 
-    ```bash
-    shuttler-backend
-    ├── .env.example           # 設定專案環境變數設定檔
-    ├── .eslintrc.json         # Eslint 設定檔
-    ├── .gitignore             # 告訴 git 不要加入版本控制設定檔
-    ├── .prettierrc.json       # Prettier 設定檔
-    ├── bin
-    │   └── www.js             # server script
-    ├── container-utility      # 容器內會用到的檔案
-    ├── docker-compose.yml     # docker-compose 檔案
-    ├── Dockerfile             # Dockerfile
-    ├── LICENSE                # 開放源始碼授權條款
-    ├── Makefile               # 定義專案的工作流程
-    ├── package-lock.json      # 確保專案成員安裝的相依套件版本完全一致
-    ├── package.json           # 專案的基本資訊、相依套件、腳本命令
-    ├── public                 # 靜態檔案
-    ├── README.md              # 專案說明手冊
-    └── src                    # 應用程式
-        ├── app.js             # Express 進入點
-        ├── config             # 環境變數相關設定檔
-        ├── controllers        # 控制器
-        ├── db                 # 資料庫連線
-        ├── entities           # TypeORM db entity
-        ├── middlewares        # 中介軟體
-        ├── routes             # 路由
-        │   └── v1             # v1 版本路由
-        └── utils              # 通用工具函式
-    ```
+## 功能特色
+- 使用者註冊登入
+- 活動創建與管理
+- 活動列表與報名
+- 舉辦者後台管理報名資料
+- 金流串接 (藍新金流)
 
-## 1. 下載 Git Repository
+## 使用技術
+- **後端框架**：Node.js、Express.js
+- **資料庫**：PostgreSQL、TypeORM
+- **驗證機制**：JWT
+- **文件生成**：Swagger (OpenAPI)
+- **靜態檔案儲存**：AWS S3
+- **開發工具**：ESLint、Prettier
+- **部署環境**：Docker、Docker Compose
 
-<details>
+## 專案架構
+```bash
+shuttler-backend/
+├── .github/            # GitHub 配置
+├── bin/                # 啟動伺服器
+├── container-utility/  # 容器工具
+├── public/             # 靜態資源
+├── src/
+│   ├── config/         # 環境變數配置
+│   ├── controllers/    # 控制器
+│   ├── db/             # 資料庫配置
+│   ├── entities/       # 資料庫實體
+│   ├── middlewares/    # 中介層
+│   ├── migrations/     # 資料庫遷移
+│   ├── routes/         # 路由
+│   ├── seeds/          # 種子數據
+│   ├── utils/          # 通用功能工具
+│   └── app.js          # 應用程式入口
+├── .env.example        # 環境變數範例
+├── .eslintrc.json      # ESLint 配置
+├── .prettierrc.json    # Prettier 配置
+├── docker-compose.yml  # Docker Compose 配置
+├── Dockerfile          # Docker 配置
+├── Makefile            # 定義專案的工作流程
+└── package.json        # 專案基本資訊、相依套件、腳本命令
+```
 
-<summary>下載專案方式</summary>
+## 環境變數
+環境變數設定，請參考 `.env.example` 檔案並複製為 `.env` 檔案，然後根據您的環境進行修改。
+```env
+# 專案設定
+PROJECT_NAME=shuttler-backend
+DOCKERHUB_ACCOUNT=your_dockerhub_account
+PLATFORM=amd64 # or arm64, 依據當前 CPU 架構修改
 
-1. 使用 `Git Clone by HTTPS`
+# Dockerfile ARG variables
+NVM_VERSION=0.40.3
+NODE_VERSION=22.15.0
+PNPM_HOME=/pnpm
+PNPM_VERSION=10.9.0
+YARN_VERSION=1.22.22
+GOLANG_VERSION=1.24.2
+GUM_VERSION=0.16.0
 
-    ```bash
-    git clone https://github.com/shuttler-tw/shuttler-backend.git
-    ```
+# 容器設定
+LOCAL_PORT=3002
+CONTAINER_PORT=3002
+LOG_LEVEL=debug
 
-2. 使用 `git clone by SSH`
+# API URL
+API_URL=http://localhost:3002
 
-    ```bash
-    git clone git@github.com:shuttler-tw/shuttler-backend.git
-    ```
+# 資料庫 設定
+DB_VERSION=17.4-alpine3.21
+DB_HOST=postgres
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=your_db_password
+DB_DATABASE=postgres
+DB_SYNCHRONIZE=false
+DB_ENABLE_SSL=false
 
-3. 使用 `Download repository zip`
+# JWT 設定
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_DAY=7d
 
-    - 用 `curl` 來下載 zip 檔
+# Google Oauth2.0 設定
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:8080/api/v1/auth/google/callback
 
-    ```bash
-    curl -sSL https://github.com/shuttler-tw/shuttler-backend/archive/refs/heads/main.zip -o shuttler-backend.zip
-    ```
+# AWS S3 設定
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=ap-northeast-1
+AWS_S3_BUCKET=shuttler-uploads
+```
 
-    - 用 `unzip` 解壓縮 zip 檔
+## 快速開始
+### 前置需求
+- Node.js
+- npm or pnpm
+- Docker & Docker Compose
+- PostgreSQL
 
-    ```bash
-    unzip shuttler-backend.zip
-    ```
+### 安裝步驟
+1. 複製專案
+```bash
+git clone <repository-url>
+cd shuttler-backend
+```
 
+2. 安裝相依套件
+```bash
+pnpm install
+```
 
-</details>
+3. 環境配置
+```bash
+# 編輯 .env 文件，設置環境變數
+cp .env.example .env
+```
 
-## 2. 啟動容器
+4. 確認當前 CPU 架構
+```bash
+# 確認當前 CPU 架構，來修改 `.env` 中的 `PLATFORM` 的預設值
+uname -m
+```
 
-<details>
+5. 編譯容器映像檔
+```bash
+make compose-build
+```
 
-<summary>使用容器說明</summary>
+6. 啟動容器
+```bash
+make compose-up
+```
 
-1. 進入到 `shuttler-backend` 專案目錄
+7. 進入容器
+```bash
+make attach
+```
+8. 執行資料庫遷移
+```bash
+pnpm typeorm migration:run
+```
 
-    ```bash
-    cd shuttler-backend
-    ```
+## 開發者指令速查
 
-2. 先把 `.env.example` 重新命名為 `.env`
-
-    ```bash
-    cp .env.example .env
-    ```
-
-3. 確認當前 CPU 架構
-
-    請按照 `uname -m` 輸出結果，來修改 `.env` 中的 `PLATFORM` 的預設值
-
-    ```bash
-    uname -m
-    ```
-
-4. 請依據輸出結果，修改 `.env`
-
-    `.env` 請按照自已所需要的做修改即可
-
-    | 變數名稱 | 預設值 | 說明 |
-    | --- | --- | --- |
-    | PROJECT_NAME | demo | 專案名稱 |
-    | DOCKERHUB_ACCOUNT | demo | Docker Hub 上的使用者名稱 |
-    | PLATFORM | arm64 | 當前電腦的 CPU 架構 | 
-    | NVM_VERSION | 0.40.2 | NVM 版本 |
-    | NODE_VERSION | 22.14.0 | NODE 版本 |
-    | PNPM_HOME | /pnpm | pnpm 套件的全局目錄 |
-    | PNPM_VERSION | 10.8.1 | PNPM 版本 |
-    | YARN_VERSION | 1.22.22 | YARN 版本 |
-    | GOLANG_VERSION | 1.24.2 | GOLANG 版本 |
-    | GUM_VERSION | 0.16.0 | GUM 版本 |
-    | LOCAL_PORT | 3002 | 使用本機的 3002 埠號 |
-    | CONTAINER_PORT | 3002 | 使用容器內的 3002 埠號 |
-    | LOG_LEVEL | debug | 應用程式開發日誌分級 |
-    | DB_VERSION | 17.4-alpine3.21 | PostgreSQL container tag |
-    | DB_HOST | postgres | PostgreSQL 位置 | 
-    | DB_PORT | 5432 | PostgreSQL listen port |
-    | DB_USERNAME | testUser | DB 使用者名稱 |
-    | DB_PASSWORD | P@ss0rd | DB 密碼|
-    | DB_DATABASE | testDB | DB 資料庫名稱 |
-    | DB_SYNCHRONIZE | true | TypeORM 同步 PostgreSQL |
-    | DB_ENABLE_SSL | false | PostgreSQL 啟用 SSL 加密連線 |
-
-5. make 指令使用說明
-
-    在終端機中，輸入指令 `make` 會看到下圖的說明及使用方法
-
-    ![image](https://hackmd.io/_uploads/ByvqULokxg.png)
-    
-    $\textcolor{Crimson}{P.S. 以下指令，請務必在本機執行}$
-
-    - 查看目前執行中的容器
-
-      ```bash
-      make show
-      ```
-
-    - 按 Dockerfile 內容，進行編譯容器映像檔
-
-      ```bash
-      make compose-build
-      ```
-
-    - 啟動容器
-
-      ```bash
-      make compose-up
-      ```
-
-    - 停止容器，並`保留`本地開發資料
-
-      ```bash
-      make compose-stop
-      ```
-
-    - 停止容器，並`刪除`本地開發資料
-
-      ```bash
-      make compose-down
-      ```
-
-    - 容器狀態為 `exited` 時，重新啟動容器
-
-      ```bash
-      make reattach
-      ```
-
-    - 容器狀態為 `running` 時，重新進入到容器
-
-      ```bash
-      make attach
-      ```
-
-    - 容器狀態為 `running` 時，停止運行容器
-
-      ```bash
-      make halt 
-      ```
-
-    - 清除容器狀態為 `exited` 以及容器映像檔為 `none`  
-
-      ```bash
-      make clean
-      ```
-
-</details>
-
-## 3. pnpm 套件使用說明
-
+以下是常用的 `pnpm` 與資料庫 migration 指令，方便開發時查閱。
 
 <details>
-
-<summary>pnpm 常用指令</summary>
+<summary><strong>pnpm 常用指令</strong></summary>
 
 1. 安裝套件
 
     ```bash
-    pnpm install nodemon
+    pnpm install <package-name>
     ```
 
-2. 確認目前 pnpm store 路徑
+2. 查看目前 `pnpm` store 路徑
 
     ```bash
     pnpm store path
     ```
 
-3. 確認 pnpm global store 路徑
+3. 查看全域 store 路徑設定
 
     ```bash
     pnpm config get store-dir
     ```
 
-4. 修改 pnpm global store 路徑
+4. 設定全域 store 路徑（建議與環境變數 `PNPM_HOME` 一致）
 
     ```bash
     pnpm config set store-dir "${PNPM_HOME}"
     ```
-
 </details>
-
-
-## DB migration
 
 <details>
+<summary><strong>Migration 相關指令</strong></summary>
 
-<summary>migration 相關指令</summary>
+1. 當修改 `entity` 檔案後，建立新的 migration 檔案：
 
-- 異動 db entity，建立 migration 檔案
-```
-    pnpm migration:generate ./src/migrations/[FileName] --pretty    
-```
+    ```bash
+    pnpm migration:generate ./src/migrations/[FileName] --pretty
+    ```
 
-- 執行 migration
-```
+2. 執行 migration：
+
+    ```bash
     pnpm migration:run
-```
-- 查看尚未執行的 migrations
-```
+    ```
+
+3. 查看尚未執行的 migrations：
+
+    ```bash
     pnpm migration:show
-```
-- 退回 migration
-```
+    ```
+
+4. 退回最新一筆 migration：
+
+    ```bash
     pnpm migration:revert
-```
+    ```
 </details>
+
+
+## Make 指令清單
+
+你可以透過 `make <target>` 執行以下常用指令：
+
+### Docker 指令
+
+| 指令名稱 | 說明 |
+|----------|------|
+| `make show` | 查看目前執行中的容器 |
+| `make build` | 依據 Dockerfile 建立映像檔 |
+| `make run` | 啟動容器（離開時自動停止） |
+| `make attach` | 容器狀態為 `running` 時，重新進入到容器 |
+| `make reattach` | 容器狀態為 `exited` 時，重新啟動容器 |
+| `make halt` | 容器狀態為 `running` 時，停止運行容器 |
+
+### Docker Compose 指令
+
+| 指令名稱 | 說明 |
+|----------|------|
+| `make compose-build` | 按 Dockerfile 內容，編譯並建構容器映像檔 |
+| `make compose-up` | 啟動容器 |
+| `make compose-stop` | 停止容器（保留 volume 資料） |
+| `make compose-down` | 停止容器並移除 volume 資料 |
+
+### 其它指令
+
+| 指令名稱 | 說明 |
+|----------|------|
+| `make clean` | 清除容器狀態為 `exited` 以及映像檔為 `none` |
+
+## API 文件與部署資訊
+
+Swagger 文件瀏覽路徑：
+
+- **開發環境**：[http://localhost:3002/api-docs](http://localhost:3002/api-docs)
+- **測試環境**：[https://dev-api.spirvita.tw/api-docs](https://dev-api.spirvita.tw/api-docs)
+
+線上 API 測試網址：
+
+- [https://dev-api.spirvita.tw/](https://dev-api.spirvita.tw/)
