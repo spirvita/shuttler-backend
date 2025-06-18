@@ -46,6 +46,16 @@ module.exports = new EntitySchema({
       default: 0,
       nullable: false,
     },
+    organization: {
+      type: 'varchar',
+      length: 100,
+      nullable: true,
+    },
+    phone: {
+      type: 'varchar',
+      length: 15,
+      nullable: true,
+    },
     created_at: {
       type: 'timestamptz',
       nullable: false,

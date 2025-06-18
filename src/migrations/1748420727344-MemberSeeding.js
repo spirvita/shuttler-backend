@@ -15,11 +15,14 @@ module.exports = class MemberSeeding1748420727344 {
 
   async seedMembers(queryRunner) {
     const saltRounds = 10;
-    const membersRepo = queryRunner.manager.getRepository('Members');
-    const levelsRepo = queryRunner.manager.getRepository('Levels');
 
     // 驗證依賴資料存在
-    const levels = await levelsRepo.find({ where: [{ level: 1 }, { level: 2 }] });
+    const levels = await queryRunner.query(`
+      SELECT id, level 
+      FROM "LEVELS" 
+      WHERE level IN (1, 2)
+      ORDER BY level
+    `);
 
     const level1 = levels.find((l) => l.level === 1);
     const level2 = levels.find((l) => l.level === 2);
@@ -50,7 +53,16 @@ module.exports = class MemberSeeding1748420727344 {
       },
     ];
 
-    await membersRepo.save(defaultMembers);
+    for (const member of defaultMembers) {
+      // 使用參數化查詢插入新會員
+      await queryRunner.query(
+        `INSERT INTO "MEMBERS" 
+           (name, email, password, photo, level_id, points) 
+           VALUES 
+           ($1, $2, $3, $4, $5, $6)`,
+        [member.name, member.email, member.password, member.photo, member.level_id, member.points],
+      );
+    }
     console.log(`✓ Insert ${defaultMembers.length} members`);
   }
 

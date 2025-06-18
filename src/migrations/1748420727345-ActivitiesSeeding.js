@@ -17,7 +17,9 @@ module.exports = class ActivitiesSeeding1748420727345 {
     const activitiesRepo = queryRunner.manager.getRepository('Activities');
     const membersRepo = queryRunner.manager.getRepository('Members');
 
-    const members = await membersRepo.find();
+    const members = await membersRepo.find({
+      select: ['id'],
+    });
 
     // 準備活動資料，分配給不同會員
     const activitiesData = DEFAULT_ACTIVITIES.map((activity, index) => ({
@@ -151,7 +153,9 @@ module.exports = class ActivitiesSeeding1748420727345 {
     const membersRepo = queryRunner.manager.getRepository('Members');
     const activitiesRegisterRepo = queryRunner.manager.getRepository('ActivitiesRegister');
 
-    const members = await membersRepo.find();
+    const members = await membersRepo.find({
+      select: ['id'],
+    });
 
     const activitiesRegisterMappings = [
       { activityIndex: 0, memberIndexes: 0, participantCount: 5 },
@@ -205,6 +209,7 @@ module.exports = class ActivitiesSeeding1748420727345 {
 
   async down(queryRunner) {
     // 按依賴順序刪除，避免外鍵約束錯誤
+    await queryRunner.query('DELETE FROM "ACTIVITIES_REGISTER"');
     await queryRunner.query('DELETE FROM "ACTIVITY_PICTURES"');
     await queryRunner.query('DELETE FROM "ACTIVITY_LEVELS"');
     await queryRunner.query('DELETE FROM "ACTIVITY_FACILITIES"');

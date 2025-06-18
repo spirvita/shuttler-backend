@@ -16,7 +16,10 @@ module.exports = class MemberFavActSeeing1748420727346 {
     const membersRepo = queryRunner.manager.getRepository('Members');
     const activitiesRepo = queryRunner.manager.getRepository('Activities');
 
-    const [members, activities] = await Promise.all([membersRepo.find(), activitiesRepo.find()]);
+    const [members, activities] = await Promise.all([
+      membersRepo.find({ select: ['id'] }),
+      activitiesRepo.find(),
+    ]);
 
     const defaultMemberFavActs = [
       { member_id: members[0].id, activity_id: activities[0].id },
