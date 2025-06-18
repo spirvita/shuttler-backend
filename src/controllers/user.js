@@ -70,6 +70,7 @@ const userController = {
           contactLine: activity.activity.contact_line,
           points: activity.activity.points,
           status: activityStatus,
+          ...(activityStatus === 'registered' && { registeredCount: activity.participant_count }),
         });
       }
       res.status(200).json({
