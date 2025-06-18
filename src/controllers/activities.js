@@ -183,6 +183,7 @@ const activitiesController = {
       const id = req.user ? req.user.id : null;
       let isFavorite = false;
       let isRegistered = false;
+      let registeredCount = null;
       if (id) {
         const memberFavoriteActivitiesRepo = dataSource.getRepository('MemberFavoriteActivities');
         const favorite = await memberFavoriteActivitiesRepo.findOne({
@@ -205,6 +206,7 @@ const activitiesController = {
         });
         if (registration) {
           isRegistered = true;
+          registeredCount = registration.participant_count;
         }
       }
 
@@ -298,6 +300,7 @@ const activitiesController = {
           points: activities.points,
           isFavorite,
           status: activityStatus,
+          ...(activityStatus === 'registered' && { registeredCount }),
         },
       });
     } catch (error) {
