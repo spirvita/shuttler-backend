@@ -176,11 +176,16 @@ const activitiesController = {
   async getActivity(req, res, next) {
     try {
       const { activityId } = req.params;
+      const { copy } = req.query;
+
       if (!isValidUUID(activityId)) {
         return next(appError(400, 'ID未填寫正確'));
       }
 
       const id = req.user ? req.user.id : null;
+      const activityWhere = copy === 'true'
+        ? { id: activityId } // 複製活動，允許所有狀態
+        : { id: activityId, status: 'published' }; // 一般查詢活動，只允許已發佈
       let isFavorite = false;
       let isRegistered = false;
       let registeredCount = null;
@@ -212,17 +217,37 @@ const activitiesController = {
 
       const activitiesRepo = dataSource.getRepository('Activities');
       const activities = await activitiesRepo.findOne({
-        where: {
-          id: activityId,
-          status: 'published',
-        },
+        where: activityWhere,
         relations: ['member'],
       });
+
       if (!activities) {
         return next(appError(404, '查無活動資料'));
       }
 
+      if (copy === 'true' && activities.member.id !== req.user.id) {
+        return next(appError(403, '無權限複製此活動'));
+      }
+
+      const organizerId = activities.member.id;
+      const totalHostedCount = await activitiesRepo.count({
+        where: { member: { id: organizerId } },
+      });
+      const publishedActivities = await activitiesRepo.find({
+        where: {
+          member: { id: organizerId },
+          status: 'published',
+        },
+        select: ['start_time', 'end_time'],
+      });
+
       const now = dayjs().tz();
+
+      const ongoingHostedCount = publishedActivities.filter((a) => {
+        const start = dayjs(a.start_time).tz();
+        return start.isAfter(now);
+      }).length;
+
       const start = dayjs(activities.start_time).tz();
       const end = dayjs(activities.end_time).tz();
       const date = start.format('YYYY-MM-DD');
@@ -272,6 +297,33 @@ const activitiesController = {
       });
       const level = levels.map((al) => al.level.name);
 
+      if(copy === 'true') {
+        return res.status(200).json({
+          message: '複製成功',
+          data: {
+            name: activities.name,
+            organizer: activities.organizer,
+            pictures: eventPictures,
+            date,
+            startTime,
+            endTime,
+            venueName: activities.venue_name,
+            city: cityData.city,
+            district: cityData.district,
+            address: activities.address,
+            venueFacilities,
+            ballType: activities.ball_type,
+            level,
+            participantCount: activities.participant_count,
+            rentalLot: activities.rental_lot,
+            brief: activities.brief,
+            contactName: activities.contact_name,
+            contactPhone: activities.contact_phone,
+            contactLine: activities.contact_line,
+            points: activities.points,
+          },
+        });
+      }
       res.status(200).json({
         message: '成功',
         data: {
@@ -301,6 +353,10 @@ const activitiesController = {
           isFavorite,
           status: activityStatus,
           ...(activityStatus === 'registered' && { registeredCount }),
+          organizerStats: {
+            totalHosted: totalHostedCount,
+            ongoingHosted: ongoingHostedCount,
+          },
         },
       });
     } catch (error) {
