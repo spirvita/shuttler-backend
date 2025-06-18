@@ -4,6 +4,7 @@ const logger = require('../utils/logger')('Member');
 const { isValidString, isValidPassword, isValidEmail } = require('../utils/validUtils');
 const appError = require('../utils/appError');
 const { generateJWT } = require('../utils/jwtUtils');
+const config = require('../config');
 
 const authController = {
   signUp: async (req, res, next) => {
@@ -111,18 +112,11 @@ const authController = {
     try {
       const { id, email, name } = req.user;
       const token = await generateJWT({ id });
+      const frontendUrl = config.get('google.frontendUrl');
 
-      res.status(200).json({
-        data: {
-          member: {
-            token,
-            user: {
-              name,
-              email,
-            },
-          },
-        },
-      });
+      res.redirect(
+        `${frontendUrl}/auth/callback?token=${token}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`,
+      );
     } catch (error) {
       logger.error('Google 登入錯誤:', error);
       next(error);
