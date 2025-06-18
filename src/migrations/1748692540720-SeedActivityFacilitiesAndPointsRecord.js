@@ -12,12 +12,13 @@ module.exports = class SeedActivityFacilitiesAndPointsRecord1748692540720 {
   }
 
   async seedActivityFacilities(queryRunner) {
-    const activityRepo = queryRunner.manager.getRepository('Activities');
-    const facilitiesRepo = queryRunner.manager.getRepository('Facilities');
-    const activityFacilitiesRepo = queryRunner.manager.getRepository('ActivityFacilities');
+    const activities = await queryRunner.query(`
+      SELECT id FROM "ACTIVITIES" ORDER BY created_at
+    `);
 
-    const activities = await activityRepo.find();
-    const facilities = await facilitiesRepo.find();
+    const facilities = await queryRunner.query(`
+      SELECT id FROM "FACILITIES" ORDER BY id
+    `);
 
     const activityFacilityMappings = [
       { activityIndex: 0, facilityIndexes: [0, 4, 7] },
@@ -32,27 +33,42 @@ module.exports = class SeedActivityFacilitiesAndPointsRecord1748692540720 {
       { activityIndex: 9, facilityIndexes: [0, 1, 2] },
     ];
 
-    const activityFacilitiesData = [];
-    activityFacilityMappings.forEach((mapping) => {
-      mapping.facilityIndexes.forEach((facilityIndex) => {
-        activityFacilitiesData.push({
-          activity_id: activities[mapping.activityIndex].id,
-          facility_id: facilities[facilityIndex].id,
-        });
-      });
-    });
+    let insertedCount = 0;
 
-    if (activityFacilitiesData.length > 0) {
-      await activityFacilitiesRepo.save(activityFacilitiesData);
-      console.log(`✓ ActivityFacilities seeding 完成 (${activityFacilitiesData.length} 筆關聯)`);
+    // 使用原生 SQL 插入活動設施關聯
+    for (const mapping of activityFacilityMappings) {
+      if (activities[mapping.activityIndex]) {
+        for (const facilityIndex of mapping.facilityIndexes) {
+          if (facilities[facilityIndex]) {
+            // 先檢查是否已存在（避免重複插入）
+            const existing = await queryRunner.query(
+              `SELECT id FROM "ACTIVITY_FACILITIES" 
+               WHERE activity_id = $1 AND facility_id = $2`,
+              [activities[mapping.activityIndex].id, facilities[facilityIndex].id],
+            );
+
+            if (existing.length === 0) {
+              await queryRunner.query(
+                `INSERT INTO "ACTIVITY_FACILITIES" 
+                 (id, activity_id, facility_id, created_at, updated_at) 
+                 VALUES 
+                 (uuid_generate_v4(), $1, $2, NOW(), NOW())`,
+                [activities[mapping.activityIndex].id, facilities[facilityIndex].id],
+              );
+              // eslint-disable-next-line no-unused-vars
+              insertedCount++;
+            }
+          }
+        }
+      }
     }
   }
 
   async seedPointsRecord(queryRunner) {
-    const membersRepo = queryRunner.manager.getRepository('Members');
-    const pointsRecordRepo = queryRunner.manager.getRepository('PointsRecord');
-
-    const members = await membersRepo.find();
+    const members = await queryRunner.query(`
+      SELECT id, name, email, points 
+      FROM "MEMBERS"
+    `);
 
     const pointsRecords = [
       { member_id: members[0].id, points_change: 10000, recordType: 'addPoint' },
@@ -61,9 +77,25 @@ module.exports = class SeedActivityFacilitiesAndPointsRecord1748692540720 {
 
     members[0].points = 10000;
     members[1].points = 20000;
-    await membersRepo.save([members[0], members[1]]);
 
-    await pointsRecordRepo.save(pointsRecords);
+    await queryRunner.query(`UPDATE "MEMBERS" SET points = $1 WHERE id = $2`, [
+      10000,
+      members[0].id,
+    ]);
+    await queryRunner.query(`UPDATE "MEMBERS" SET points = $1 WHERE id = $2`, [
+      20000,
+      members[1].id,
+    ]);
+
+    for (const record of pointsRecords) {
+      await queryRunner.query(
+        `INSERT INTO "POINTS_RECORD" 
+         (member_id, points_change, "recordType") 
+         VALUES 
+         ($1, $2, $3)`,
+        [record.member_id, record.points_change, record.recordType],
+      );
+    }
     console.log(`✓ PointsRecord seeding 完成 (${pointsRecords.length} 筆記錄)`);
   }
 
