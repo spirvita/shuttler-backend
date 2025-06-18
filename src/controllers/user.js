@@ -103,6 +103,8 @@ const userController = {
           level: findUser.level?.level || null,
           totalPoint: findUser.points || 0,
           attendCount: findUser.attendCount || 0, // TODO: 這邊要從報名活動的資料庫查詢
+          organization: findUser.organization || null,
+          phone: findUser.phone || null,
         },
       });
     } catch (error) {
@@ -113,7 +115,7 @@ const userController = {
   updateMemberProfile: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const { name, avatar, email, preferredLocation, level } = req.body;
+      const { name, avatar, email, preferredLocation, level, organization, phone } = req.body;
 
       if ((name && !isValidString(name)) || (email && !isValidString(email))) {
         logger.warn('更新使用者資料錯誤:', '欄位未填寫正確');
@@ -131,7 +133,7 @@ const userController = {
         where: {
           id,
         },
-        select: ['id', 'name', 'email', 'region', 'level'],
+        select: ['id', 'name', 'email', 'region', 'level', 'organization', 'phone'],
       });
 
       if (!existingMember) {
@@ -178,6 +180,8 @@ const userController = {
           email,
           region: preferredLocation,
           level_id: level ? existingLevel.id : existingLevel,
+          organization,
+          phone,
         },
       );
 
@@ -205,6 +209,8 @@ const userController = {
           email: updateData.email,
           preferredLocation: updateData.region,
           level: updateData.level?.level || null,
+          organization: updateData.organization || null,
+          phone: updateData.phone || null,
         },
       });
     } catch (error) {
