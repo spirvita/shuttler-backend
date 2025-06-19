@@ -113,10 +113,10 @@ const pointsController = {
 
       // 加密資訊返回前端
       res.status(200).json({
-        status: 'success',
+        message: '成功建立訂單',
         data: {
           MerchantID,
-          varsion: Version,
+          version: Version,
           TradeInfo: aesEnc,
           TradeSha: shaEnc,
         },
@@ -263,7 +263,6 @@ const pointsController = {
       if (!order) {
         logger.warn('回調檢查錯誤:', '沒有找到最近的點數訂單');
         return res.status(404).json({
-          status: 'fail',
           message: '沒有找到最近的點數訂單',
         });
       }
@@ -278,7 +277,7 @@ const pointsController = {
       }
 
       res.status(200).json({
-        status: 'success',
+        message: '查詢成功',
         data: {
           orderStatus: order.status,
           pointsValue: order.pointsPlan.value,

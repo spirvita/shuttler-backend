@@ -299,3 +299,83 @@ module.exports = router;
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
+
+/**
+ * @swagger
+ * /api/v1/user/records:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     tags: [User]
+ *     summary: 查看點數紀錄
+ *     description: 查看點數紀錄
+ *     responses:
+ *       200:
+ *         description: 取得成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       createTime:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-06-19 13:45"
+ *                       recordType:
+ *                         type: string
+ *                         example: earn
+ *                       pointsChange:
+ *                         type: integer
+ *                         example: 100
+ *                       activity:
+ *                         type: object
+ *                         nullable: true
+ *                         properties:
+ *                           activityId:
+ *                             type: integer
+ *                             example: 12
+ *                           activityName:
+ *                             type: string
+ *                             example: "週三夜間羽球賽"
+ *             examples:
+ *               success:
+ *                 summary: 有紀錄
+ *                 value:
+ *                   message: "success"
+ *                   data:
+ *                     - createTime: "2025-06-19 13:45"
+ *                       recordType: "earn"
+ *                       pointsChange: 100
+ *                       activity:
+ *                         activityId: 12
+ *                         activityName: "週三夜間羽球賽"
+ *                     - createTime: "2025-06-18 10:30"
+ *                       recordType: "spend"
+ *                       pointsChange: -50
+ *                       activity: null
+ *               noData:
+ *                 summary: 無資料
+ *                 value:
+ *                   message: "目前無資料"
+ *                   data: []
+ *       401:
+ *         description: 身份驗證失敗
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "身份驗證失敗"
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */

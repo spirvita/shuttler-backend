@@ -312,7 +312,7 @@ const userController = {
       }));
 
       res.status(200).json({
-        message: 'success',
+        message: '取得成功',
         data,
       });
     } catch (error) {
