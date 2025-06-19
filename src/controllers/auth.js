@@ -125,27 +125,55 @@ const authController = {
   resetPassword: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const { newPassword, checkNewPassword } = req.body;
+      const { password, newPassword, checkNewPassword } = req.body;
       if (!isValidPassword(newPassword) || !isValidPassword(checkNewPassword)) {
-        logger.warn('重設密碼錯誤:', '新密碼格式不正確');
-        return next(appError(400, '新密碼格式不正確'));
+        logger.warn(
+          '重設密碼錯誤:',
+          '密碼不符合規則，密碼長度必須至少 10 個字元，且至少包含 1 個數字和 1 個英文字母',
+        );
+        return next(
+          appError(
+            400,
+            '密碼不符合規則，密碼長度必須至少 10 個字元，且至少包含 1 個數字和 1 個英文字母',
+          ),
+        );
       }
 
-      const user = await dataSource.getRepository('Members').findOne({
-        where: { id },
-      });
+      if (newPassword !== checkNewPassword) {
+        logger.warn('重設密碼錯誤:', '新密碼與確認新密碼不一致');
+        return next(appError(400, '新密碼與確認新密碼不一致'));
+      }
+
+      const user = await dataSource
+        .getRepository('Members')
+        .createQueryBuilder('member')
+        .addSelect('member.password')
+        .where('member.id = :id', { id })
+        .getOne();
 
       if (!user) {
         logger.warn('重設密碼錯誤:', '此 Email 未註冊');
         return next(appError(400, '此 Email 未註冊'));
       }
 
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        logger.warn('重設密碼錯誤:', '舊密碼輸入錯誤');
+        return next(appError(400, '舊密碼輸入錯誤'));
+      }
+
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        logger.warn('重設密碼錯誤:', '新密碼不能與舊密碼相同');
+        return next(appError(400, '新密碼不能與舊密碼相同'));
+      }
+
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);
       await dataSource.getRepository('Members').save(user);
 
-      logger.info('重設密碼成功:', user.id);
-      res.status(200).json({ message: '密碼重設成功' });
+      logger.info('修改密碼成功:', user.id);
+      res.status(200).json({ message: '修改密碼成功' });
     } catch (error) {
       logger.error('重設密碼錯誤:', error);
       appError(500, '重設密碼失敗');

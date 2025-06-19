@@ -651,7 +651,7 @@ const organizerController = {
     } finally {
       await queryRunner.release();
     }
-  }
+  },
 };
 
 module.exports = organizerController;

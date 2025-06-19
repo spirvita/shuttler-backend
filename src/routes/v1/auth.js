@@ -267,3 +267,89 @@ module.exports = router;
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
+
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: 修改密碼
+ *     description: 使用者可以修改自己的密碼
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPassword
+ *               - checkNewPassword
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: 舊密碼
+ *                 example: "Aa12345678"
+ *               newPassword:
+ *                 type: string
+ *                 description: 新密碼
+ *                 example: "Bb12345678"
+ *               checkNewPassword:
+ *                 type: string
+ *                 description: 確認新密碼
+ *                 example: "Bb12345678"
+ *     responses:
+ *       200:
+ *         description: 修改密碼成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 修改密碼成功
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               passwordError:
+ *                 summary: 密碼格式錯誤
+ *                 value:
+ *                   message: "密碼不符合規則，密碼長度必須至少 10 個字元，且至少包含 1 個數字和 1 個英文字母"
+ *               passwordMismatch:
+ *                 summary: 新密碼與確認新密碼不一致
+ *                 value:
+ *                   message: "新密碼與確認新密碼不一致"
+ *               userNotFound:
+ *                 summary: 此 Email 未註冊
+ *                 value:
+ *                   message: "此 Email 未註冊"
+ *               oldPasswordError:
+ *                 summary: 舊密碼輸入錯誤
+ *                 value:
+ *                   message: "舊密碼輸入錯誤"
+ *               samePasswordError:
+ *                 summary: 新密碼不能與舊密碼相同
+ *                 value:
+ *                   message: "新密碼不能與舊密碼相同"
+ *       401:
+ *         description: 身份驗證失敗
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "身份驗證失敗"
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */

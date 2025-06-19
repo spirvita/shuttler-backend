@@ -430,7 +430,8 @@ module.exports = router;
  *               - activityId
  *             properties:
  *               activityId:
- *                 type: uuid
+ *                 type: string
+ *                 format: uuid
  *                 description: 活動 ID
  *     responses:
  *       201:
@@ -523,14 +524,15 @@ module.exports = router;
  *               - participantCount
  *             properties:
  *               activityId:
- *                 type: uuid
+ *                 type: string
+ *                 format: uuid
  *                 description: 活動 ID
  *               participantCount:
  *                 type: integer
  *                 minimum: 1
  *                 description: 報名人數
  *     responses:
- *       201:
+ *       200:
  *         description: 報名成功
  *         content:
  *           application/json:
@@ -539,10 +541,15 @@ module.exports = router;
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "報名成功"
- *                 registrationId:
- *                   type: uuid
- *                   example: "1c8da31a-5fd2-44f3-897e-4a259e7ec62b"
+ *             examples:
+ *               registrationCountSuccess:
+ *                 summary: 修改報名人數成功
+ *                 value:
+ *                   message: "修改報名人數成功"
+ *               registrationCountUnchanged:
+ *                 summary: 報名人數未變更
+ *                 value:
+ *                   message: "報名人數未變更"
  *       400:
  *         description: 請求參數錯誤
  *         content:
@@ -554,25 +561,21 @@ module.exports = router;
  *                   type: string
  *             examples:
  *               invalidUUID:
- *                 summary: 活動ID未填寫正確
+ *                 summary: ID未填寫正確
  *                 value:
- *                   message: "活動ID未填寫正確"
+ *                   message: "ID未填寫正確"
  *               invalidParticipantCount:
- *                 summary: 報名人數未填寫正確
+ *                 summary: 報名人數未填寫正確，且必須大於 0
  *                 value:
- *                   message: "報名人數未填寫正確"
- *               activityIsEnded:
- *                 summary: 活動已結束
- *                 value:
- *                   message: "活動已結束"
+ *                   message: "報名人數未填寫正確，且必須大於 0"
  *               registrationCountNotEnough:
  *                 summary: 活動名額不足，剩餘 (0)
  *                 value:
  *                   message: "活動名額不足，剩餘 (0)"
  *               registrationPointsNotEnough:
- *                 summary: 報名失敗，活動點數不足
+ *                 summary: 點數不足
  *                 value:
- *                   message: "報名失敗，活動點數不足"
+ *                   message: "點數不足"
  *       401:
  *         description: 身份驗證失敗
  *         content:
@@ -601,6 +604,126 @@ module.exports = router;
  *                 summary: 活動不存在
  *                 value:
  *                   message: "活動不存在"
+ *               registrationNotFound:
+ *                 summary: 你尚未報名此活動
+ *                 value:
+ *                   message: "你尚未報名此活動"
+ *       409:
+ *         description: 你已經取消報名此活動，無法修改人數
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               alreadyFavorited:
+ *                 summary: 你已經取消報名此活動，無法修改人數
+ *                 value:
+ *                   message: "你已經取消報名此活動，無法修改人數"
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+
+/** * @swagger
+ * /api/v1/activity/registration:
+ *   put:
+ *     tags: [Activity]
+ *     summary: 修改報名人數
+ *     description: 使用者可以修改報名人數
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - activityId
+ *               - participantCount
+ *             properties:
+ *               activityId:
+ *                 type: uuid
+ *                 description: 活動 ID
+ *               participantCount:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: 報名人數
+ *     responses:
+ *       200:
+ *         description: 更新報名成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "更新報名成功"
+ *       400:
+ *         description: 請求參數錯誤
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               invalidUUID:
+ *                 summary: 活動ID未填寫正確
+ *                 value:
+ *                   message: "活動ID未填寫正確"
+ *               invalidParticipantCount:
+ *                 summary: 報名人數未填寫正確
+ *                 value:
+ *                   message: "報名人數未填寫正確"
+ *               activityIsEnded:
+ *                 summary: 活動已結束，無法更新報名
+ *                 value:
+ *                   message: "活動已結束，無法更新報名"
+ *               registrationCountNotEnough:
+ *                 summary: 活動名額不足，剩餘 (0)
+ *                 value:
+ *                   message: "活動名額不足，剩餘 (0)"
+ *               registrationPointsNotEnough:
+ *                 summary: 更新報名失敗，活動點數不足
+ *                 value:
+ *                   message: "更新報名失敗，活動點數不足"
+ *       401:
+ *         description: 身份驗證失敗
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "身份驗證失敗"
+ *       404:
+ *         description: 找不到資源
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *             examples:
+ *               memberNotFound:
+ *                 summary: 會員不存在
+ *                 value:
+ *                   message: "會員不存在"
+ *               activityNotFound:
+ *                 summary: 活動不存在
+ *                 value:
+ *                   message: "活動不存在"
+ *               registrationNotFound:
+ *                 summary: 你尚未報名此活動
+ *                 value:
+ *                   message: "你尚未報名此活動"
  *       409:
  *         description: 你已經報名此活動
  *         content:

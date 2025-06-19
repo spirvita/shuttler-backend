@@ -382,7 +382,7 @@ const activityController = {
           ])
           .where('a.status = :status', { status: 'published' })
           .andWhere('a.booked_count < a.participant_count')
-          .andWhere('a.start_time > :now', { now })
+          .andWhere('a.start_time > :now', { now });
         if (excludedIds.length > 0) {
           fallbackQuery.andWhere('a.id NOT IN (:...excludedIds)', { excludedIds });
         }
@@ -681,8 +681,8 @@ const activityController = {
 
       const now = dayjs().tz();
       const activityStartTime = dayjs(activity.start_time).tz();
-      if (!activityStartTime.isAfter(now)) {
-        return next(appError(400, '活動已結束，無法取消報名'));
+      if (activityStartTime.isBefore(now)) {
+        return next(appError(400, '活動已開始，無法取消報名'));
       }
 
       const registration = await activitiesRegisterRepo.findOne({
@@ -761,7 +761,7 @@ const activityController = {
       if (end.isBefore(now)) return next(appError(400, '活動已結束，無法修改報名人數'));
       if (start.isBefore(now)) return next(appError(400, '活動已開始，無法修改報名人數'));
 
-      let registration = await activitiesRegisterRepo.findOne({
+      const registration = await activitiesRegisterRepo.findOne({
         where: {
           member: { id: member.id },
           activity: { id: activityId },
@@ -783,7 +783,12 @@ const activityController = {
 
       const availableSlots = activity.participant_count - (activity.booked_count - originalCount);
       if (diffCount > 0 && participantCount > availableSlots) {
-        return next(appError(400, `活動名額不足，剩餘 ${activity.participant_count - activity.booked_count} 人`));
+        return next(
+          appError(
+            400,
+            `活動名額不足，剩餘 ${activity.participant_count - activity.booked_count} 人`,
+          ),
+        );
       }
 
       if (diffCount > 0 && member.points < diffPoints) {
@@ -822,7 +827,7 @@ const activityController = {
     } finally {
       await queryRunner.release();
     }
-  }
+  },
 };
 
 module.exports = activityController;

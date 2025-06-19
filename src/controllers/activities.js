@@ -183,9 +183,10 @@ const activitiesController = {
       }
 
       const id = req.user ? req.user.id : null;
-      const activityWhere = copy === 'true'
-        ? { id: activityId } // 複製活動，允許所有狀態
-        : { id: activityId, status: 'published' }; // 一般查詢活動，只允許已發佈
+      const activityWhere =
+        copy === 'true'
+          ? { id: activityId } // 複製活動，允許所有狀態
+          : { id: activityId, status: 'published' }; // 一般查詢活動，只允許已發佈
       let isFavorite = false;
       let isRegistered = false;
       let registeredCount = null;
@@ -297,7 +298,7 @@ const activitiesController = {
       });
       const level = levels.map((al) => al.level.name);
 
-      if(copy === 'true') {
+      if (copy === 'true') {
         return res.status(200).json({
           message: '複製成功',
           data: {
