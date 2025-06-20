@@ -56,6 +56,15 @@ module.exports = new EntitySchema({
       length: 15,
       nullable: true,
     },
+    reset_password_token: {
+      type: 'varchar',
+      length: 255,
+      nullable: true,
+    },
+    reset_password_expiry: {
+      type: 'timestamptz',
+      nullable: true,
+    },
     created_at: {
       type: 'timestamptz',
       nullable: false,
