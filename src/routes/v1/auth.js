@@ -17,6 +17,9 @@ router.get(
   authController.googleAuthCallback,
 );
 router.post('/reset-password', authenticateJWT, authController.resetPassword);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-pwd-with-token', authController.resetPwdWithToken);
+router.get('/verify-reset-token/:token', authController.verifyResetToken);
 
 module.exports = router;
 
