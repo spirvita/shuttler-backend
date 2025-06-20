@@ -282,7 +282,7 @@ const authController = {
         logger.warn('驗證重設密碼 token 錯誤:', '無效或已過期的 token');
         return next(appError(400, '無效或已過期的 token'));
       }
-      res.status(200).json({ message: 'success' });
+      res.status(200).json({ message: 'token 有效' });
     } catch (error) {
       logger.error('驗證重設密碼 token 錯誤:', error);
       next(error);
@@ -330,7 +330,7 @@ const authController = {
         user.reset_password_token = null;
         user.reset_password_expiry = null;
         await dataSource.getRepository('Members').save(user);
-        return next(appError(400, '無效或已過期的 token'));
+        return next(appError(403, '重設密碼連結已過期，請重新取得連結'));
       }
 
       const salt = await bcrypt.genSalt(10);
