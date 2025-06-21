@@ -633,6 +633,20 @@ const activityController = {
         recordType: 'applyAct',
       });
 
+      const host = await membersRepo.findOne({
+        where: { id: activity.member_id },
+      });
+
+      host.points += totalCost;
+      await membersRepo.save(host);
+
+      await pointsRecordRepo.save({
+        member: { id: host.id },
+        activity: { id: activity.id },
+        points_change: totalCost,
+        recordType: 'receiveAct',
+      });
+
       await queryRunner.commitTransaction();
 
       res.status(201).json({
@@ -683,6 +697,10 @@ const activityController = {
       const activityStartTime = dayjs(activity.start_time).tz();
       if (activityStartTime.isBefore(now)) {
         return next(appError(400, '活動已開始，無法取消報名'));
+      }
+      const twoHoursBeforeStart = activityStartTime.subtract(2, 'hour');
+      if (now.isAfter(twoHoursBeforeStart)) {
+        return next(appError(400, '距離活動開始已不足2小時，無法取消報名'));
       }
 
       const registration = await activitiesRegisterRepo.findOne({
@@ -759,7 +777,10 @@ const activityController = {
       const start = dayjs(activity.start_time).tz();
       const end = dayjs(activity.end_time).tz();
       if (end.isBefore(now)) return next(appError(400, '活動已結束，無法修改報名人數'));
-      if (start.isBefore(now)) return next(appError(400, '活動已開始，無法修改報名人數'));
+      const twoHoursBeforeStart = start.subtract(2, 'hour');
+      if (now.isAfter(twoHoursBeforeStart)) {
+        return next(appError(400, '距離活動開始已不足2小時，無法修改報名人數'));
+      }
 
       const registration = await activitiesRegisterRepo.findOne({
         where: {
