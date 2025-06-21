@@ -128,7 +128,7 @@ const authController = {
   resetPassword: async (req, res, next) => {
     try {
       const { id } = req.user;
-      const { password, newPassword, checkNewPassword } = req.body;
+      const { newPassword, checkNewPassword } = req.body;
       if (!isValidPassword(newPassword) || !isValidPassword(checkNewPassword)) {
         logger.warn(
           '重設密碼錯誤:',
@@ -157,18 +157,6 @@ const authController = {
       if (!user) {
         logger.warn('重設密碼錯誤:', '此 Email 未註冊');
         return next(appError(400, '此 Email 未註冊'));
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        logger.warn('重設密碼錯誤:', '舊密碼輸入錯誤');
-        return next(appError(400, '舊密碼輸入錯誤'));
-      }
-
-      const isSamePassword = await bcrypt.compare(newPassword, user.password);
-      if (isSamePassword) {
-        logger.warn('重設密碼錯誤:', '新密碼不能與舊密碼相同');
-        return next(appError(400, '新密碼不能與舊密碼相同'));
       }
 
       const salt = await bcrypt.genSalt(10);
