@@ -33,34 +33,54 @@ const activitiesController = {
       if (points && (!isNumber(Number(points)) || Number(points) < 0 || Number(points) > 1000)) {
         return next(appError(400, '點數未填寫正確'));
       }
+
+      if (date && !isValidDate(date)) {
+        return next(appError(400, '日期格式錯誤，請使用 YYYY-MM-DD'));
+      }
+
+      if (
+        timeSlot &&
+        (!isNumber(Number(timeSlot)) || Number(timeSlot) < 0 || Number(timeSlot) > 23)
+      ) {
+        return next(appError(400, '時段格式錯誤，請提供 0~23 的數字'));
+      }
+
       let dateTime = null;
       let endDateTime = null;
-      if (timeSlot && !date) {
-        return next(appError(400, '請提供日期以搭配時段'));
-      }
+
+      const now = dayjs.tz();
+      const latestAllowed = now.add(14, 'day').endOf('day');
+
       if (date) {
-        if (!isValidDate(date)) {
-          return next(appError(400, '日期格式錯誤，請使用 YYYY-MM-DD'));
+        const targetDate = dayjs(`${date} 00:00`, 'YYYY-MM-DD HH:mm').tz();
+        if (targetDate.isBefore(now.startOf('day')) || targetDate.isAfter(latestAllowed)) {
+          return next(appError(400, '僅能查詢今天起14天內的活動'));
+        }
+      }
+
+      if (date && timeSlot) {
+        const timeStr = `${date} ${String(timeSlot).padStart(2, '0')}:00`;
+        const targetStart = dayjs(timeStr, 'YYYY-MM-DD HH:mm').tz();
+
+        if (targetStart.isBefore(now)) {
+          return next(appError(400, '日期時段未填寫正確'));
         }
 
-        if (timeSlot) {
-          if (!isNumber(Number(timeSlot)) || Number(timeSlot) < 0 || Number(timeSlot) > 23) {
-            return next(appError(400, '時段格式錯誤，請提供 0~23 的數字'));
-          }
-
-          const timeStr = `${date} ${String(timeSlot).padStart(2, '0')}:00`;
-          dateTime = dayjs(timeStr, 'YYYY-MM-DD HH:mm').tz().toDate();
+        dateTime = targetStart.toDate();
+        endDateTime = latestAllowed.toDate();
+      } else if (date && !timeSlot) {
+        if (date === now.format('YYYY-MM-DD')) {
+          dateTime = now.toDate();
         } else {
           dateTime = dayjs(`${date} 00:00`, 'YYYY-MM-DD HH:mm').tz().toDate();
         }
 
-        if (isNaN(dateTime.getTime())) {
-          return next(appError(400, '無效的日期時間'));
-        }
+        endDateTime = latestAllowed.toDate();
       } else {
-        dateTime = dayjs().tz().toDate();
+        // 無date或只有timeSlot情況
+        dateTime = now.toDate();
+        endDateTime = latestAllowed.toDate();
       }
-      endDateTime = dayjs(dateTime).add(14, 'day').toDate();
 
       const activitiesRepo = dataSource.getRepository('Activities');
       const activityLevelsRepo = dataSource.getRepository('ActivityLevels');
@@ -71,7 +91,7 @@ const activitiesController = {
         const activityLevels = await activityLevelsRepo
           .createQueryBuilder('al')
           .leftJoin('al.level', 'level')
-          .where('level.level >= :level', { level })
+          .where('level.level <= :level', { level })
           .select('al.activity_id', 'activityId')
           .groupBy('al.activity_id')
           .getRawMany();
@@ -111,7 +131,7 @@ const activitiesController = {
         );
       }
       if (points) {
-        activitiesQuery.andWhere('activity.points >= :points', { points });
+        activitiesQuery.andWhere('activity.points <= :points', { points });
       }
       activitiesQuery.andWhere('activity.start_time >= :dateTime', { dateTime });
       activitiesQuery.andWhere('activity.start_time <= :endDateTime', { endDateTime });
@@ -130,13 +150,21 @@ const activitiesController = {
       activitiesQuery.orderBy('activity.start_time', 'ASC');
       const activities = await activitiesQuery.getMany();
 
-      if (!activities || activities.length === 0) {
+      let filteredActivities = activities;
+      if (timeSlot && !date) {
+        filteredActivities = activities.filter((a) => {
+          const hour = dayjs(a.start_time).tz().hour();
+          return hour >= timeSlot;
+        });
+      }
+
+      if (!filteredActivities || filteredActivities.length === 0) {
         return res.status(200).json({ message: '目前無資料', data: [] });
       }
 
       const data = [];
 
-      for (const activity of activities) {
+      for (const activity of filteredActivities) {
         const start = dayjs(activity.start_time).tz();
         const end = dayjs(activity.end_time).tz();
         const date = start.format('YYYY-MM-DD');
