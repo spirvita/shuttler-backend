@@ -412,7 +412,7 @@ const activityController = {
 
         const picture = await activityPicturesRepo.findOne({
           where: {
-            activity_id: activity.id,
+            activity_id: activity.a_id,
             sort_order: 1,
           },
         });
