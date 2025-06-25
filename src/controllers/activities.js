@@ -3,6 +3,7 @@ const logger = require('../utils/logger')('Activities');
 const { isValidUUID, isValidString, isNumber, isValidDate } = require('../utils/validUtils');
 const appError = require('../utils/appError');
 const dayjs = require('../utils/dayjs');
+const { Not } = require('typeorm');
 
 const activitiesController = {
   async getActivities(req, res, next) {
@@ -214,7 +215,7 @@ const activitiesController = {
       const activityWhere =
         copy === 'true'
           ? { id: activityId } // 複製活動，允許所有狀態
-          : { id: activityId, status: 'published' }; // 一般查詢活動，只允許已發佈
+          : { id: activityId, status: Not('draft') }; // 一般查詢活動，允許已發佈、已停辦、已結束，排除草稿
       let isFavorite = false;
       let isRegistered = false;
       let registeredCount = null;
