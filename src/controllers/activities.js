@@ -89,10 +89,16 @@ const activitiesController = {
 
       let activityIdsWithLevel = null;
       if (level) {
+        const levelsToQuery = [level];
+
+        if (level > 1) {
+          levelsToQuery.push(level - 1);
+        }
+
         const activityLevels = await activityLevelsRepo
           .createQueryBuilder('al')
           .leftJoin('al.level', 'level')
-          .where('level.level <= :level', { level })
+          .where('level.level IN (:...levels)', { levels: levelsToQuery })
           .select('al.activity_id', 'activityId')
           .groupBy('al.activity_id')
           .getRawMany();
