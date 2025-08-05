@@ -1,6 +1,12 @@
 const dotenv = require('dotenv');
+const fs = require('fs');
 
-const result = dotenv.config();
+if (fs.existsSync('.env')) {
+  const result = dotenv.config();
+  if (result.error) {
+    throw result.error;
+  }
+}
 const db = require('./db');
 const web = require('./web');
 const jwt = require('./jwt');
@@ -8,9 +14,6 @@ const google = require('./google');
 const aws = require('./aws');
 const newebpay = require('./newebpay');
 
-if (result.error) {
-  throw result.error;
-}
 const config = {
   db,
   web,
